@@ -1,6 +1,6 @@
 # 🧠 BroMeme - AI Meme Generator
 
-![BroMeme Preview](./assets/cover.png)
+![BroMeme Preview](./src/assets/cover.png)
 
 **BroMeme** is an AI-powered meme creation platform built with modern web technologies. It allows users to upload or choose meme templates, edit them with custom text, apply visual effects, draw or rotate the image, and download the final creation. It offers categorized meme browsing and trending template discovery — all inside a smooth, fast interface.
 
@@ -10,15 +10,29 @@
 
 ---
 
+## 🎧 Vibe Coding
+
+This project was built in a flow state with the help of multiple AI tools — what we like to call **Vibe Coding**. No overthinking, no endless docs — just creative momentum assisted by intelligent code and design agents.
+
+- 🧠 **Design** made with natural language → UI mockups and component ideas by ChatGPT
+- 🤖 **Code** co-written with Claude 3.7 and GitHub Copilot in real time
+- ⚡️ AI agents decided file structure, naming, and even animations
+- 🎯 Focused purely on **user experience**, speed, and joy of creation
+
+> "We didn’t write code. We had a conversation with the machine."  
+> — The BroMeme Devs
+
+---
+
 ## 🚀 Features
 
-- 🖼️ Meme Template Library: Browse popular, classic, and reaction memes
+- 🖼️ Meme Template Library: Browse popular, classic, reaction, cat, and dog memes
 - ✏️ Editor Tools:
   - Add custom text to memes
   - Draw on images
   - Apply effects
   - Rotate images
-- 📤 Upload your own image
+- 📤 Upload your image
 - 📦 Download as PNG
 - 🔥 Hot Meme Templates section
 - 🌐 Category Tabs for quick discovery
@@ -40,3 +54,7 @@
 - **TypeScript**: Full type safety with `.tsx` components
 - **Redux Toolkit**: Global state management using slices and selectors
 - **Vite**: Lightning-fast development environment
+
+## 📌 License
+
+© 2025 Meme Generator. All rights reserved.
