@@ -14,18 +14,16 @@
   - 🤖 **Claude 3.7 Sonnet**
   - 👨‍💻 **GitHub Copilot**
 
-
-
 ---
 
 ## 🎧 Vibe Coding
 
 This project was built in a flow state with the help of multiple AI tools — what we like to call **Vibe Coding**. No overthinking, no endless docs — just creative momentum assisted by intelligent code and design agents.
 
-- 🧠 **Design** made with natural language → UI mockups and component ideas by ChatGPT
-- 🤖 **Code** co-written with Claude 3.7 and GitHub Copilot in real time
-- ⚡️ AI agents decided file structure, naming, and even animations
-- 🎯 Focused purely on **user experience**, speed, and joy of creation
+- 🧠 **Design** made with natural language → UI mockups and component ideas by ChatGPT  
+- 🤖 **Code** co-written with Claude 3.7 and GitHub Copilot in real time  
+- ⚡️ AI agents decided file structure, naming, and even animations  
+- 🎯 Focused purely on **user experience**, speed, and joy of creation  
 
 > "We didn’t write code. We had a conversation with the machine."  
 > — The BroMeme Devs
@@ -34,34 +32,37 @@ This project was built in a flow state with the help of multiple AI tools — wh
 
 ## 🚀 Features
 
-- 🖼️ Meme Template Library: Browse popular, classic, reaction, cat, and dog memes
+- 🖼️ Meme Template Library: Browse popular, classic, reaction, cat, and dog memes  
 - ✏️ Editor Tools:
   - Add custom text to memes
   - Draw on images
   - Apply effects
   - Rotate images
-- 📤 Upload your image
-- 📦 Download as PNG
-- 🔥 Hot Meme Templates section
-- 🌐 Category Tabs for quick discovery
+- 📤 Upload your image  
+- 📦 Download as PNG  
+- 🔥 Hot Meme Templates section  
+- 🌐 Category Tabs for quick discovery  
 
 ---
 
 ## 🔧 Upcoming Features
 
-- 🤖 **AI Editor**: Automatically generate memes from prompts
-- 🌗 **Dark/Light Theme Toggle**
-- 🔐 **User Authentication**: Sign up and log in to save memes or upload collections
+- 🤖 **AI Editor**: Automatically generate memes from prompts  
+- 🌗 **Dark/Light Theme Toggle**  
+- 🔐 **User Authentication**: Sign up and log in to save memes or upload collections  
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Core Technologies
-- **React**: Frontend built with React and functional components
-- **TypeScript**: Full type safety with `.tsx` components
-- **Redux Toolkit**: Global state management using slices and selectors
-- **Vite**: Lightning-fast development environment
+- **React**: Frontend built with React and functional components  
+- **TypeScript**: Full type safety with `.tsx` components  
+- **Redux Toolkit**: Global state management using slices and selectors  
+- **Vite**: Lightning-fast development environment  
+- **styled-components**: For writing CSS in JavaScript using component-level styles  
+
+---
 
 ## 📌 License
 
