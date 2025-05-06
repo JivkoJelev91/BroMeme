@@ -1,0 +1,85 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: #213547;
+  background-color: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #f7f7f7;
+  color: #222;
+}
+
+#root {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.AppContainer,
+.EditorContainer,
+.HotMemesContainer,
+.HeaderContent {
+  background: #fff;
+  color: #222;
+}
+
+.HeaderContent {
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  border-bottom: 1px solid #eaeaea;
+}
+
+input,
+textarea {
+  background: #fff;
+  color: #222;
+  border: 1px solid #eaeaea;
+}
+
+.SearchContainer {
+  background: #f5f5f5;
+  border: 1px solid #eaeaea;
+}
+
+button,
+.TabButton,
+.ControlTab {
+  background: #222;
+  color: #fff;
+  border: 1px solid #222;
+}
+
+.MemeCard {
+  background: #fff;
+}
+
+.MemeText {
+  color: #222;
+  text-shadow: none;
+}
+
+.GenerateButton {
+  background: #222;
+  color: #fff;
+}
+
+.Avatar {
+  background: #e0e0e0;
+  color: #777;
+}
+
+.Logo {
+  color: #222;
+}

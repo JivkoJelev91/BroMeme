@@ -1,0 +1,61 @@
+/* Reset some default styling */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -ms-touch-action: manipulation;
+  touch-action: manipulation; /* Prevents double-tap to zoom */
+}
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Make font size a bit larger for better mobile readability without zooming */
+  font-size: 16px;
+}
+
+/* Ensure no text selection on interactive elements */
+button, a, input[type="button"], input[type="submit"] {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Ensure proper sizing of form elements to prevent auto-zoom */
+input, textarea, select {
+  font-size: 16px; /* Prevents iOS zoom on focus */
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #f0f2f5;
+  color: #333;
+  text-size-adjust: 100%; /* Prevents text resizing */
+  -webkit-text-size-adjust: 100%; /* For Safari */
+}
+
+#root {
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+}
