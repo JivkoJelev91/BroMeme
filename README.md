@@ -50,7 +50,7 @@ This project was built in a flow state with the help of multiple AI tools — wh
 
 - 🤖 **AI Editor**: Automatically generate memes from prompts  
 - 🌗 **Dark/Light Theme Toggle**  
-- 🔐 **User Authentication**: Sign up and log in to save memes or upload collections  
+- 🔐 **User Authentication**
 - 🌍 **Login with Other Social Media Platforms** (Facebook, Twitter, GitHub, etc.)
 
 ---
