@@ -1,9 +1,11 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { toPng } from 'html-to-image'
 import styled from 'styled-components'
 import { useAppDispatch, useAppSelector, setMemeImage, setMemeImageName } from 'store'
 import './App.css'
 import { Header, TabBar, MemePreview, ControlPanel, HotMemes, Footer, MemeTemplatesPanel } from 'components'
+import { supabase } from './supabase/supabaseConfig'
+import { setUser } from './redux/slices/authSlice'
 
 // Styled components
 const AppContainer = styled.div`
@@ -57,13 +59,57 @@ const HotMemesContainer = styled.div`
   width: 100%;
 `;
 
+// Add with your other styled components
+const TemplatesContainer = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+`;
+
 function App() {
   const memeRef = useRef<HTMLDivElement | null>(null)
   const { activeTab } = useAppSelector(state => state.meme)
   const dispatch = useAppDispatch()
 
+  // Set up auth state listener
+  useEffect(() => {
+    // Check initial session
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      console.log('Initial session check:', data.session);
+      if (data?.session) {
+        dispatch(setUser(data.session.user));
+      }
+    };
+    
+    checkSession();
+    
+    // Set up auth listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session);
+        if (session) {
+          console.log('User logged in:', session.user);
+          dispatch(setUser(session.user));
+        } else {
+          console.log('User logged out');
+          dispatch(setUser(null));
+        }
+      }
+    );
+    
+    // Clean up
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [dispatch]);
+
   // Check if current tab is one of the editor tabs
-  const isEditorTab = ['text', 'effects', 'draw', 'rotate'].includes(activeTab)
+  const isEditorTab = ['text', 'effects', 'draw', 'rotate', 'upload'].includes(activeTab)
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -99,27 +145,30 @@ function App() {
       })
   }
 
-  // Render content based on the active tab
-  const renderMainContent = () => {
-    if (isEditorTab) {
-      return (
-        <EditorContainer>
-          <MemePreview memeRef={memeRef} />
-          <ControlPanel 
-            handleImageUpload={handleImageUpload} 
-            downloadMeme={downloadMeme} 
-          />
-        </EditorContainer>
-      );
-    } else {
-      // It's a template category tab
-      return (
-        <TemplateContainer>
-          <MemeTemplatesPanel category={activeTab} />
-        </TemplateContainer>
-      );
-    }
-  };
+// Then update the renderMainContent function to include template categories
+const renderMainContent = () => {
+  // These are your editor tabs
+  if (['text', 'effects', 'draw', 'rotate', 'upload'].includes(activeTab)) {
+    return (
+      <EditorContainer>
+        <MemePreview memeRef={memeRef} />
+        <ControlPanel 
+          handleImageUpload={handleImageUpload} 
+          downloadMeme={downloadMeme} 
+        />
+      </EditorContainer>
+    );
+  } 
+  // These are your template category tabs
+  else if (['popular', 'hot', 'classic', 'reaction', 'cat', 'dog', 'all'].includes(activeTab)) {
+    return (
+        <MemeTemplatesPanel category={activeTab} />
+    );
+  }
+  
+  // Default case
+  return null;
+}
 
   return (
     <AppContainer>

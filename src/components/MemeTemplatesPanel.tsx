@@ -2,7 +2,15 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useAppDispatch } from 'store';
 import { setMemeImage, setMemeImageName, setActiveTab } from '../redux';
-import { memeTemplates, MemeTemplate } from '../memeTemplates';
+import { supabase } from '../supabase/supabaseConfig';
+
+interface MemeTemplate {
+  id: string;
+  name: string;
+  url: string;
+  categories: string[];
+  created_at: string;
+}
 
 interface MemeTemplatesPanelProps {
   category: string;
@@ -11,37 +19,46 @@ interface MemeTemplatesPanelProps {
 // Component
 const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({ category }) => {
   const [templates, setTemplates] = useState<MemeTemplate[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const dispatch = useAppDispatch();
   
   useEffect(() => {
-    let filteredTemplates: MemeTemplate[];
+    fetchTemplates();
+  }, [category]);
+  
+  const fetchTemplates = async () => {
+    setIsLoading(true);
+    setError(null);
     
-    if (searchQuery.trim()) {
-      // Search across all templates if there's a search query
-      const lowercaseQuery = searchQuery.toLowerCase();
-      filteredTemplates = memeTemplates.filter(meme => 
-        meme.name.toLowerCase().includes(lowercaseQuery) || 
-        meme.tags.some(tag => tag.toLowerCase().includes(lowercaseQuery))
-      );
-    } else if (category === 'popular') {
-      // Popular memes - first 8 memes
-      filteredTemplates = memeTemplates.slice(0, 8);
-    } else if (category === 'hot') {
-      // Hot memes - different set, maybe the most trending ones
-      filteredTemplates = memeTemplates.filter(meme => 
-        ['drake', 'distracted-boyfriend', 'two-buttons', 'woman-yelling-at-cat'].includes(meme.id)
-      );
-    } else if (category === 'all') {
-      // All memes
-      filteredTemplates = [...memeTemplates];
-    } else {
-      // Category specific memes
-      filteredTemplates = memeTemplates.filter(meme => meme.category === category);
+    try {
+      console.log(`Fetching templates for category: ${category}`);
+      
+      let query = supabase.from('meme_templates').select('*');
+      
+      // Apply category filter if not "all"
+      if (category !== 'all') {
+        query = query.filter('categories', 'cs', `{${category}}`);
+      }
+      
+      // Get results
+      const { data, error } = await query;
+      
+      console.log('Fetched templates:', data, 'Error:', error);
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      setTemplates(data || []);
+    } catch (err: any) {
+      console.error('Error fetching templates:', err);
+      setError(err.message);
+      setTemplates([]);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setTemplates(filteredTemplates);
-  }, [category, searchQuery]);
+  };
   
   const handleSelectTemplate = (template: MemeTemplate) => {
     // Create a new Image object to load the template
@@ -74,7 +91,7 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({ category }) => 
     };
     
     img.onerror = () => {
-      console.error('Error loading image');
+      console.error('Error loading image:', template.url);
       // Fallback - just set the image URL directly
       dispatch(setMemeImage(template.url));
       dispatch(setMemeImageName(template.name));
@@ -91,7 +108,8 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({ category }) => 
       case 'hot': return 'Hot Memes';
       case 'classic': return 'Classic Memes';
       case 'reaction': return 'Reaction Memes';
-      case 'cats': return 'Cat Memes';
+      case 'cat': return 'Cat Memes';
+      case 'dog': return 'Dog Memes';
       default: return 'Meme Templates';
     }
   };
@@ -102,20 +120,40 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({ category }) => 
         <CategoryTitle>{getCategoryTitle()}</CategoryTitle>
       </HeaderSection>
       
-      <TemplatesGrid>
-        {templates.length > 0 ? (
-          templates.map(template => (
-            <TemplateCard key={template.id} onClick={() => handleSelectTemplate(template)}>
-              <TemplateImage src={template.url} alt={template.name} />
-              <TemplateName>{template.name}</TemplateName>
-            </TemplateCard>
-          ))
-        ) : (
-          <NoResults>
-            No templates found. Try a different search.
-          </NoResults>
-        )}
-      </TemplatesGrid>
+      {isLoading ? (
+        <LoadingContainer>
+          <LoadingSpinner />
+          <div>Loading templates...</div>
+        </LoadingContainer>
+      ) : error ? (
+        <ErrorContainer>
+          <ErrorIcon>⚠️</ErrorIcon>
+          <div>Error loading templates: {error}</div>
+          <RefreshButton onClick={fetchTemplates}>Try Again</RefreshButton>
+        </ErrorContainer>
+      ) : (
+        <TemplatesGrid>
+          {templates.length > 0 ? (
+            templates.map(template => (
+              <TemplateCard key={template.id} onClick={() => handleSelectTemplate(template)}>
+                <TemplateImage src={template.url} alt={template.name} />
+                <TemplateName>{template.name}</TemplateName>
+              </TemplateCard>
+            ))
+          ) : (
+            <NoResults>
+              <div>No templates found for {category} category.</div>
+              <DebugButton onClick={async () => {
+                const { data } = await supabase.from('meme_templates').select('*');
+                console.log('All templates in database:', data);
+                alert(`Database has ${data?.length || 0} total templates. Check console.`);
+              }}>
+                Check Database
+              </DebugButton>
+            </NoResults>
+          )}
+        </TemplatesGrid>
+      )}
     </Container>
   );
 };
@@ -126,6 +164,10 @@ const Container = styled.div`
   flex-direction: column;
   height: 100%;
   padding: 1rem;
+  width: 100%;
+  max-width: var(--app-max-width, 1000px); /* Match your app's max-width */
+  margin: 0 auto;
+  box-sizing: border-box;
 `;
 
 const HeaderSection = styled.div`
@@ -141,22 +183,20 @@ const CategoryTitle = styled.h2`
   color: #333;
 `;
 
-const SearchInput = styled.input`
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  width: 250px;
-  
-  &:focus {
-    outline: none;
-    border-color: #4285f4;
-  }
-`;
-
 const TemplatesGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  
+  /* Desktop - more columns */
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+  
+  /* Large Desktop - even more columns */
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+  
   gap: 1rem;
   overflow-y: auto;
   padding-right: 0.5rem;
@@ -216,6 +256,76 @@ const NoResults = styled.div`
   text-align: center;
   padding: 2rem;
   color: #888;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #666;
+  gap: 1rem;
+`;
+
+const LoadingSpinner = styled.div`
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+const ErrorContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #d32f2f;
+  text-align: center;
+  gap: 1rem;
+`;
+
+const ErrorIcon = styled.div`
+  font-size: 2rem;
+`;
+
+const RefreshButton = styled.button`
+  background: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  
+  &:hover {
+    background: #e0e0e0;
+  }
+`;
+
+const DebugButton = styled.button`
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  
+  &:hover {
+    background: #e0e0e0;
+  }
 `;
 
 export default MemeTemplatesPanel;

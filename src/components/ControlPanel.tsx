@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { useAppSelector, useAppDispatch, setActiveTab, RootState } from 'store';
 import { TextPanel, EffectsPanel, DrawPanel, RotatePanel } from 'components';
+import UploadPanel from './panels/UploadPanel';
 
 // Component
 interface ControlPanelProps {
@@ -13,8 +14,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   handleImageUpload,
   downloadMeme
 }) => {
-  const { activeTab, memeImage, memeImageName } = useAppSelector((state: RootState) => state.meme);
   const dispatch = useAppDispatch();
+  const { activeTab, memeImage, memeImageName } = useAppSelector((state: RootState) => state.meme);
+  const { isAuthenticated } = useAppSelector(state => state.auth);
 
   // Display truncated image name function
   const displayImageName = () => {
@@ -34,6 +36,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         return <DrawPanel />;
       case "rotate":
         return <RotatePanel />;
+        case "upload":
+        return <UploadPanel />;
       default:
         return null;
     }
@@ -71,6 +75,15 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             <TabIcon>↻</TabIcon>
             <TabLabel>Rotate</TabLabel>
           </ControlTab>
+          {isAuthenticated && (
+            <ControlTab 
+              active={activeTab === 'upload'}
+              onClick={() => dispatch(setActiveTab('upload'))}
+            >
+              <TabIcon>📤</TabIcon>
+              Upload
+            </ControlTab>
+          )}
         </ControlTabs>
         
         <MemeTitle>{displayImageName()}</MemeTitle>
@@ -83,11 +96,14 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         <ButtonSpacer />
       </ScrollableContent>
       
-      <StickyButtonContainer>
-        <GenerateButton onClick={downloadMeme} disabled={!memeImage}>
-          Generate Meme
-        </GenerateButton>
-      </StickyButtonContainer>
+      // Change it to only show for editor tabs, not for upload:
+<StickyButtonContainer>
+  {activeTab !== 'upload' && (
+    <GenerateButton onClick={downloadMeme} disabled={!memeImage}>
+      Generate Meme
+    </GenerateButton>
+  )}
+</StickyButtonContainer>
     </ControlsContainer>
   );
 };

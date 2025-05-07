@@ -8,7 +8,8 @@ const TabBar: React.FC = () => {
   const dispatch = useAppDispatch();
   const tabListRef = useRef<HTMLDivElement>(null);
   const [showScrollButtons, setShowScrollButtons] = useState(false);
-  
+  const { isAuthenticated } = useAppSelector(state => state.auth);
+
   // Check if scrolling is needed and scroll to active tab
   useEffect(() => {
     const tabList = tabListRef.current;

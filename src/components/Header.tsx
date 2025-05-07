@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useAppDispatch } from 'store';
+import { useAppDispatch, useAppSelector } from 'store';
 import { setActiveTab } from '../redux';
 import { memeTemplates } from '../memeTemplates';
+import { signOut } from '../redux/slices/authSlice';
+import AuthModal from './AuthModal';
 
 // Styled components
 const HeaderContainer = styled.header`
@@ -108,15 +110,19 @@ const HeaderActions = styled.div`
   }
 `;
 
+// Enhanced Avatar styling
 const Avatar = styled.div`
   width: 38px;
   height: 38px;
-  background: #e0e0e0;
+  background: #4285f4;
+  color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #777;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1.1rem;
   
   @media (max-width: 600px) {
     width: 32px;
@@ -200,6 +206,114 @@ const SearchResultItem = styled.div`
   }
 `;
 
+// Auth-related styled components
+const UserMenu = styled.div`
+  position: relative;
+  
+  &:hover {
+    & > div:last-child {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+
+const UserDropdown = styled.div`
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  padding: 0.75rem;
+  min-width: 180px;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.2s ease-in-out;
+  z-index: 100;
+  
+  &:before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 10px;
+    width: 12px;
+    height: 12px;
+    background: white;
+    transform: rotate(45deg);
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-left: 1px solid rgba(0,0,0,0.05);
+  }
+`;
+
+const UserInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+`;
+
+const UserName = styled.div`
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #333;
+`;
+
+const UserEmail = styled.div`
+  font-size: 0.8rem;
+  color: #777;
+  max-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const DropdownDivider = styled.div`
+  height: 1px;
+  background: #eaeaea;
+  margin: 0.5rem 0;
+`;
+
+const SignOutButton = styled.button`
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0;
+  background: transparent;
+  border: none;
+  color: #e53935;
+  font-size: 0.9rem;
+  cursor: pointer;
+  
+  &:hover {
+    font-weight: 500;
+  }
+`;
+
+// Simplified auth button for non-authenticated users
+const SignInButton = styled.button`
+  padding: 0.35rem 0.7rem;
+  background: transparent;
+  color: #4285f4;
+  border: 1px solid #4285f4;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  
+  &:hover {
+    background: rgba(66, 133, 244, 0.05);
+  }
+  
+  @media (max-width: 600px) {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+  }
+`;
+
 // Component
 const Header: React.FC = () => {
   // Theme state in localStorage for persistence
@@ -212,7 +326,18 @@ const Header: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [results, setResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
+  
+  // Auth state
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  
+  // Auth from redux store
+  const { isAuthenticated, user } = useAppSelector(state => state.auth);
+  
   const dispatch = useAppDispatch();
+
+  const openAuthModal = () => {
+    setAuthModalOpen(true);
+  };
 
   // Search handler
   const handleSearch = (e) => {
@@ -240,6 +365,11 @@ const Header: React.FC = () => {
   // Handle logo click
   const handleLogoClick = () => {
     dispatch(setActiveTab('text'));
+  };
+  
+  // Auth handlers  
+  const handleSignOut = () => {
+    dispatch(signOut());
   };
 
   React.useEffect(() => {
@@ -282,7 +412,33 @@ const Header: React.FC = () => {
           )}
         </SearchContainer>
         <HeaderActions>
-          <Avatar>👤</Avatar>
+        {isAuthenticated ? (
+  <UserMenu>
+    <Avatar>
+      {user?.user_metadata?.name?.charAt(0).toUpperCase() || 
+       user?.user_metadata?.full_name?.charAt(0).toUpperCase() || 
+       user?.email?.charAt(0).toUpperCase() || 
+       '👤'}
+    </Avatar>
+    <UserDropdown>
+      <UserInfo>
+        <UserName>
+          {user?.user_metadata?.name || 
+           user?.user_metadata?.full_name || 
+           user?.email?.split('@')[0]}
+        </UserName>
+        <UserEmail>{user?.email}</UserEmail>
+      </UserInfo>
+      <DropdownDivider />
+      <SignOutButton onClick={handleSignOut}>Sign Out</SignOutButton>
+    </UserDropdown>
+  </UserMenu>
+) : (
+  <SignInButton onClick={openAuthModal}>
+    <span>👤</span>
+    <span>Sign in</span>
+  </SignInButton>
+)}
           <ThemeToggle onClick={toggleTheme} dark={dark} title={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
             {dark ? (
               <svg key="moon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -306,6 +462,12 @@ const Header: React.FC = () => {
           </ThemeToggle>
         </HeaderActions>
       </HeaderContent>
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={authModalOpen} 
+        onClose={() => setAuthModalOpen(false)}
+      />
     </HeaderContainer>
   );
 };

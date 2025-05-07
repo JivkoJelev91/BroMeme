@@ -5,7 +5,6 @@ export { default as MemePreview } from './MemePreview';
 export { default as ControlPanel } from './ControlPanel';
 export { default as HotMemes } from './HotMemes';
 export { default as Footer } from './Footer';
-export { default as TemplateGrid } from './TemplateGrid';
 export { default as MemeTemplatesPanel } from './MemeTemplatesPanel';
 
 // Panel components
