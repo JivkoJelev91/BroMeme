@@ -162,78 +162,6 @@ const UploadPanel: React.FC = () => {
     }
   };
   
-  const checkDatabase = async () => {
-    try {
-      setDebugInfo('Checking database...');
-      
-      // Check if table exists
-      const { data: tableExists, error: tableError } = await supabase
-        .from('meme_templates')
-        .select('count(*)', { count: 'exact', head: true });
-      
-      if (tableError) {
-        setDebugInfo(`Table error: ${tableError.message}`);
-        return;
-      }
-      
-      // Get all templates
-      const { data: allTemplates, error: templatesError } = await supabase
-        .from('meme_templates')
-        .select('*');
-        
-      if (templatesError) {
-        setDebugInfo(`Templates query error: ${templatesError.message}`);
-        return;
-      }
-      
-      // Get just uploaded template
-      let uploadedTemplate = null;
-      if (uploadedTemplateId) {
-        const { data, error } = await supabase
-          .from('meme_templates')
-          .select('*')
-          .eq('id', uploadedTemplateId)
-          .single();
-          
-        if (!error) {
-          uploadedTemplate = data;
-        }
-      }
-      
-      // Check for templates in each selected category
-      const categoryResults = [];
-      for (const category of selectedCategories) {
-        const { data: categoryTemplates, error: categoryError } = await supabase
-          .from('meme_templates')
-          .select('*')
-          .filter('categories', 'cs', `{${category}}`);
-        
-        categoryResults.push({
-          category,
-          count: categoryTemplates?.length || 0,
-          error: categoryError?.message
-        });
-      }
-      
-      // Set debug info
-      setDebugInfo(
-        `DATABASE CHECK RESULTS:
-        
-- Templates table exists: ${!tableError ? 'Yes' : 'No'}
-- Total templates: ${allTemplates?.length || 0}
-- Current template ID: ${uploadedTemplateId || 'None'}
-- Categories for this template: ${uploadedTemplate?.categories?.join(', ') || 'None'}
-
-CATEGORY COUNTS:
-${categoryResults.map(r => `- ${r.category}: ${r.count} templates${r.error ? ` (Error: ${r.error})` : ''}`).join('\n')}
-
-RECENT TEMPLATES:
-${allTemplates?.slice(0, 5).map(t => `- ${t.name} (${t.categories.join(', ')})`).join('\n') || 'None'}`
-      );
-    } catch (err: any) {
-      setDebugInfo(`Error checking database: ${err.message}`);
-    }
-  };
   
   return (
     <PanelContainer>
@@ -375,13 +303,6 @@ const DropArea = styled.div<{ hasPreview: boolean }>`
   }
 `;
 
-// Limit the height of the preview image
-const PreviewImage = styled.img`
-  max-width: 100%;
-  max-height: 170px; /* Slightly smaller */
-  display: block;
-  border-radius: 4px;
-`;
 
 // Make categories container more compact
 const CategoriesContainer = styled.div`
@@ -494,73 +415,6 @@ const ViewButton = styled.button`
   
   &:hover {
     background: #f0f5ff;
-  }
-`;
-
-const DebugButton = styled.button`
-  margin-top: 1.5rem;
-  background: #f2f2f2;
-  color: #555;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.8rem;
-  cursor: pointer;
-  
-  &:hover {
-    background: #e0e0e0;
-  }
-`;
-
-const DebugInfo = styled.div`
-  margin-top: 1rem;
-  padding: 1rem;
-  background: #f8f8f8;
-  border: 1px solid #eee;
-  border-radius: 4px;
-  text-align: left;
-  width: 100%;
-  overflow-x: auto;
-  
-  pre {
-    margin: 0;
-    font-size: 0.75rem;
-    color: #555;
-    white-space: pre-wrap;
-  }
-`;
-
-const UploadedPreview = styled.div`
-  margin: 1rem 0 1.5rem;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 300px;
-  
-  img {
-    width: 100%;
-    height: auto;
-    max-height: 200px;
-    object-fit: cover;
-    display: block;
-  }
-  
-  .template-info {
-    padding: 0.75rem;
-    background: white;
-    text-align: center;
-    
-    span {
-      display: block;
-      font-weight: 500;
-      margin-bottom: 0.25rem;
-    }
-    
-    small {
-      color: #666;
-      display: block;
-    }
   }
 `;
 
