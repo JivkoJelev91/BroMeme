@@ -86,7 +86,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           )}
         </ControlTabs>
         
-        <MemeTitle>{displayImageName()}</MemeTitle>
+        {activeTab !== 'upload' && <MemeTitle>{displayImageName()}</MemeTitle>}
         
         <TabContentWrapper>
           {renderTabContent()}
@@ -96,14 +96,13 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         <ButtonSpacer />
       </ScrollableContent>
       
-      // Change it to only show for editor tabs, not for upload:
-<StickyButtonContainer>
   {activeTab !== 'upload' && (
+<StickyButtonContainer>
     <GenerateButton onClick={downloadMeme} disabled={!memeImage}>
       Generate Meme
     </GenerateButton>
-  )}
 </StickyButtonContainer>
+  )}
     </ControlsContainer>
   );
 };
@@ -131,7 +130,6 @@ const ControlsContainer = styled.div`
 const ScrollableContent = styled.div`
   padding: 1.25rem 1.25rem 0;
   flex: 1;
-  overflow-y: auto;
   /* Hide scrollbar for Chrome, Safari and Opera */
   &::-webkit-scrollbar {
     display: none;
@@ -164,7 +162,7 @@ const ButtonSpacer = styled.div`
 
 const StickyButtonContainer = styled.div`
   position: absolute;
-  bottom: 0;
+  bottom: -5px;
   left: 0;
   right: 0;
   padding: 1.25rem;

@@ -248,17 +248,6 @@ ${allTemplates?.slice(0, 5).map(t => `- ${t.name} (${t.categories.join(', ')})`)
             <small>It may take a moment to appear in the gallery.</small>
           </SuccessText>
           
-          {/* Show the uploaded image */}
-          {uploadedUrl && (
-            <UploadedPreview>
-              <img src={uploadedUrl} alt={name} />
-              <div className="template-info">
-                <span>{name}</span>
-                <small>{selectedCategories.join(', ')}</small>
-              </div>
-            </UploadedPreview>
-          )}
-          
           <ButtonGroup>
             <Button onClick={resetForm}>Upload Another</Button>
             <ViewButton onClick={viewTemplate}>
@@ -266,39 +255,33 @@ ${allTemplates?.slice(0, 5).map(t => `- ${t.name} (${t.categories.join(', ')})`)
             </ViewButton>
           </ButtonGroup>
           
-          <DebugButton onClick={checkDatabase}>
-            Debug Database
-          </DebugButton>
-          
-          {debugInfo && (
-            <DebugInfo>
-              <pre>{debugInfo}</pre>
-            </DebugInfo>
-          )}
         </SuccessContainer>
       ) : (
         <UploadForm onSubmit={handleSubmit}>
-          <FormGroup>
-            <Label>Template Image</Label>
-            <DropArea 
-              onClick={() => fileInputRef.current?.click()}
-              hasPreview={!!previewUrl}
-            >
-              {previewUrl ? (
-                <PreviewImage src={previewUrl} alt="Preview" />
-              ) : (
-                <UploadIcon>📁 Select Image</UploadIcon>
-              )}
-              <input 
-                type="file" 
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                style={{ display: 'none' }}
-              />
-            </DropArea>
-          </FormGroup>
-          
+              <FormGroup>
+          <Label>Template Image</Label>
+          <DropArea 
+            onClick={() => fileInputRef.current?.click()}
+            hasPreview={!!selectedFile}
+          >
+            {selectedFile ? (
+              <SelectedFileInfo>
+                <FileName>{selectedFile.name}</FileName>
+                <FileSize>({(selectedFile.size / 1024).toFixed(1)} KB)</FileSize>
+              </SelectedFileInfo>
+            ) : (
+              <UploadIcon>📁 Select Image</UploadIcon>
+            )}
+            <input 
+              type="file" 
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              style={{ display: 'none' }}
+            />
+          </DropArea>
+        </FormGroup>
+                  
           <FormGroup>
             <Label>Template Name</Label>
             <Input 
@@ -360,45 +343,57 @@ const UploadForm = styled.form`
   gap: 1rem;
 `;
 
+// Update Form components to be more compact
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem; /* Reduce space between label and input */
+  margin-bottom: 0.75rem; /* Add space between form groups instead */
 `;
 
 const Label = styled.label`
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* Slightly smaller font */
   color: #555;
 `;
 
+// Make the drop area smaller when no preview
 const DropArea = styled.div<{ hasPreview: boolean }>`
-  border: 2px dashed #ccc;
+  border: 2px dashed ${props => props.hasPreview ? '#4285f4' : '#ccc'};
   border-radius: 4px;
-  padding: ${props => props.hasPreview ? '0' : '2rem'};
+  padding: ${props => props.hasPreview ? '0' : '0.5rem'};
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  background: ${props => props.hasPreview ? 'transparent' : '#f9f9f9'};
+  background: ${props => props.hasPreview ? '#f0f7ff' : '#f9f9f9'};
   
   &:hover {
-    background: ${props => props.hasPreview ? 'transparent' : '#f5f5f5'};
-    border-color: ${props => props.hasPreview ? '#ccc' : '#aaa'};
+    background: ${props => props.hasPreview ? '#e6f0ff' : '#f5f5f5'};
+    border-color: ${props => props.hasPreview ? '#3367d6' : '#aaa'};
   }
+`;
+
+// Limit the height of the preview image
+const PreviewImage = styled.img`
+  max-width: 100%;
+  max-height: 170px; /* Slightly smaller */
+  display: block;
+  border-radius: 4px;
+`;
+
+// Make categories container more compact
+const CategoriesContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columns instead of 2 */
+  gap: 0.4rem; /* Smaller gap */
+  margin-bottom: 0.25rem;
 `;
 
 const UploadIcon = styled.div`
   font-size: 1.2rem;
   color: #777;
-`;
-
-const PreviewImage = styled.img`
-  max-width: 100%;
-  max-height: 200px;
-  display: block;
-  border-radius: 4px;
 `;
 
 const Input = styled.input`
@@ -411,12 +406,6 @@ const Input = styled.input`
     outline: none;
     border-color: #4285f4;
   }
-`;
-
-const CategoriesContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
 `;
 
 const CategoryCheckbox = styled.div`
@@ -588,6 +577,25 @@ const LoadingSpinner = styled.span`
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
+`;
+
+const SelectedFileInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+`;
+
+const FileName = styled.div`
+  font-weight: 500;
+  word-break: break-word;
+  text-align: center;
+  max-width: 100%;
+`;
+
+const FileSize = styled.div`
+  font-size: 0.85rem;
+  color: #777;
 `;
 
 export default UploadPanel;
