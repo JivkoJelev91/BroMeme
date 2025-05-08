@@ -1,4 +1,4 @@
-# 🧠 BroMeme - AI Meme Generator
+# 🧠 BroMeme - Meme Generator
 
 ![BroMeme Preview](./src/assets/cover.png)
 
