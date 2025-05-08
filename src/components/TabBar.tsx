@@ -82,6 +82,13 @@ const TabBar: React.FC = () => {
         
         {/* Template category tabs */}
         <Tab 
+          active={activeTab === 'favorites'} 
+          onClick={() => dispatch(setActiveTab('favorites'))}
+        >
+          <TabIcon>🎭</TabIcon>
+          Favorites
+        </Tab>
+        <Tab 
           active={activeTab === 'popular'}
           onClick={() => dispatch(setActiveTab('popular'))}
           data-tab="popular"
@@ -117,7 +124,7 @@ const TabBar: React.FC = () => {
         
         <Tab 
           active={activeTab === 'cats'}
-          onClick={() => dispatch(setActiveTab('cats'))}
+          onClick={() => dispatch(setActiveTab('cat'))}
           data-tab="cats"
         >
           <TabIcon>🐱</TabIcon>
@@ -126,11 +133,18 @@ const TabBar: React.FC = () => {
         
         <Tab 
           active={activeTab === 'dogs'}
-          onClick={() => dispatch(setActiveTab('dogs'))}
+          onClick={() => dispatch(setActiveTab('dog'))}
           data-tab="dogs"
         >
           <TabIcon>🐶</TabIcon>
           Dog Memes
+        </Tab>
+        <Tab 
+          active={activeTab === 'all'} 
+          onClick={() => dispatch(setActiveTab('all'))}
+        >
+          <TabIcon>🎭</TabIcon>
+          All
         </Tab>
       </TabList>
       
@@ -151,7 +165,7 @@ const TabBar: React.FC = () => {
 const TabContainer = styled.div`
   max-width: 1000px;
   width: 100%;
-  padding: 0 0.75rem;
+  padding: 0 1.75rem;
   background: white;
   border-radius: 0.5rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);

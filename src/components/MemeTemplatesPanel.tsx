@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { useAppDispatch } from 'store';
+import styled, { keyframes, css } from 'styled-components';
+import { useAppDispatch, useAppSelector } from 'store';
 import { setMemeImage, setMemeImageName, setActiveTab } from '../redux';
 import { supabase } from '../supabase/supabaseConfig';
+import { FiHeart, FiCheckCircle, FiCheck } from 'react-icons/fi';
+import { FaHeart } from 'react-icons/fa';
 
 interface MemeTemplate {
   id: string;
@@ -14,49 +16,157 @@ interface MemeTemplate {
 
 interface MemeTemplatesPanelProps {
   category: string;
+  isFavorites?: boolean;
 }
 
-// Component
-const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({ category }) => {
+const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({ 
+  category, 
+  isFavorites = false 
+}) => {
   const [templates, setTemplates] = useState<MemeTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const dispatch = useAppDispatch();
-  
-  useEffect(() => {
-    fetchTemplates();
-  }, [category]);
-  
+  const { user } = useAppSelector(state => state.auth);
+
+  // Fetch templates based on category or favorites
   const fetchTemplates = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      console.log(`Fetching templates for category: ${category}`);
+      console.log(`Fetching templates for ${isFavorites ? 'favorites' : `category: ${category}`}`);
       
-      let query = supabase.from('meme_templates').select('*');
-      
-      // Apply category filter if not "all"
-      if (category !== 'all') {
-        query = query.filter('categories', 'cs', `{${category}}`);
+      if (isFavorites) {
+        // For favorites view, we need to:
+        // 1. Get the user's favorite template IDs
+        // 2. Then get the actual templates with those IDs
+        
+        if (!user) {
+          setTemplates([]);
+          setError('You must be logged in to view favorites');
+          return;
+        }
+        
+        // First get the favorite template IDs
+        const { data: favoriteData, error: favoriteError } = await supabase
+          .from('favorites')
+          .select('template_id')
+          .eq('user_id', user.id);
+          
+        if (favoriteError) throw new Error(favoriteError.message);
+        
+        // If no favorites found, return empty array
+        if (!favoriteData?.length) {
+          setTemplates([]);
+          return;
+        }
+        
+        // Extract the template IDs from favorites
+        const templateIds = favoriteData.map(fav => fav.template_id);
+        
+        // Then fetch the templates with those IDs
+        const { data: templatesData, error: templatesError } = await supabase
+          .from('meme_templates')
+          .select('*')
+          .in('id', templateIds);
+          
+        if (templatesError) throw new Error(templatesError.message);
+        
+        setTemplates(templatesData || []);
+      } else {
+        // For regular category view, filter by category
+        let query = supabase.from('meme_templates').select('*');
+        
+        // Apply category filter if not "all"
+        if (category !== 'all') {
+          // For dog/cat categories which might have special handling
+          if (category === 'dog' || category === 'cat') {
+            query = query.contains('categories', [category.toLowerCase()]);
+          } else {
+            query = query.filter('categories', 'cs', `{${category}}`);
+          }
+        }
+        
+        // Get results
+        const { data, error } = await query;
+        
+        if (error) throw new Error(error.message);
+        
+        setTemplates(data || []);
       }
       
-      // Get results
-      const { data, error } = await query;
-      
-      console.log('Fetched templates:', data, 'Error:', error);
-      
-      if (error) {
-        throw new Error(error.message);
+      // Also fetch user's favorites to highlight them
+      if (user) {
+        fetchUserFavorites();
       }
-      
-      setTemplates(data || []);
     } catch (err: any) {
       console.error('Error fetching templates:', err);
       setError(err.message);
       setTemplates([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Function to fetch user's favorites
+  const fetchUserFavorites = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('favorites')
+        .select('template_id')
+        .eq('user_id', user.id);
+        
+      if (error) throw new Error(error.message);
+      
+      setFavoriteIds(data.map(item => item.template_id));
+    } catch (err: any) {
+      console.error('Error fetching user favorites:', err);
+    }
+  };
+
+  // Fetch templates when component mounts or category/favorites changes
+  useEffect(() => {
+    fetchTemplates();
+  }, [category, isFavorites, user]);
+
+  const toggleFavorite = async (templateId: string, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent template selection when clicking favorite button
+    
+    if (!user) return;
+    
+    const isFavorite = favoriteIds.includes(templateId);
+    
+    try {
+      if (isFavorite) {
+        // Remove from favorites
+        const { error } = await supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('template_id', templateId);
+          
+        if (error) throw new Error(error.message);
+        
+        setFavoriteIds(prev => prev.filter(id => id !== templateId));
+      } else {
+        // Add to favorites
+        const { error } = await supabase
+          .from('favorites')
+          .insert({
+            user_id: user.id,
+            template_id: templateId
+          });
+          
+        if (error) throw new Error(error.message);
+        
+        setFavoriteIds(prev => [...prev, templateId]);
+      }
+    } catch (err: any) {
+      console.error('Error toggling favorite:', err);
     }
   };
   
@@ -103,6 +213,8 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({ category }) => 
   
   // Get the category title for display
   const getCategoryTitle = () => {
+    if (isFavorites) return 'My Favorites';
+    
     switch(category) {
       case 'popular': return 'Popular Memes';
       case 'hot': return 'Hot Memes';
@@ -110,10 +222,11 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({ category }) => 
       case 'reaction': return 'Reaction Memes';
       case 'cat': return 'Cat Memes';
       case 'dog': return 'Dog Memes';
+      case 'all': return 'All Memes';
       default: return 'Meme Templates';
     }
   };
-  
+
   return (
     <Container>
       <HeaderSection>
@@ -137,12 +250,28 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({ category }) => 
             templates.map(template => (
               <TemplateCard key={template.id} onClick={() => handleSelectTemplate(template)}>
                 <TemplateImage src={template.url} alt={template.name} />
+                {user && (
+                  <FavoriteButton 
+                    onClick={(event) => toggleFavorite(template.id, event)}
+                    isFavorite={favoriteIds.includes(template.id)}
+                  >
+                    {favoriteIds.includes(template.id) ? <FaHeart /> : <FiHeart />}
+                  </FavoriteButton>
+                )}
                 <TemplateName>{template.name}</TemplateName>
               </TemplateCard>
             ))
           ) : (
             <NoResults>
-              <div>No templates found for {category} category.</div>
+              {isFavorites ? (
+                <div>
+                  You haven't added any favorites yet.
+                  <br />
+                  Click the heart icon on memes to add them to your favorites.
+                </div>
+              ) : (
+                <div>No templates found for {category} category.</div>
+              )}
               <DebugButton onClick={async () => {
                 const { data } = await supabase.from('meme_templates').select('*');
                 console.log('All templates in database:', data);
@@ -228,6 +357,7 @@ const TemplateCard = styled.div`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
   background: white;
+  position: relative; /* Add this to make FavoriteButton position relative to the card */
   
   &:hover {
     transform: translateY(-2px);
@@ -235,6 +365,7 @@ const TemplateCard = styled.div`
   }
 `;
 
+// Update TemplateImage to fit within the container
 const TemplateImage = styled.img`
   width: 100%;
   height: 140px;
@@ -249,6 +380,41 @@ const TemplateName = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
   border-top: 1px solid #f0f0f0;
+`;
+
+const HeartAnimation = keyframes`
+  0% { transform: scale(1); }
+  25% { transform: scale(1.2); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+`;
+
+const FavoriteButton = styled.button<{ isFavorite?: boolean }>`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: ${props => props.isFavorite ? 'red' : '#777'};
+  z-index: 2;
+  transition: background 0.2s;
+  
+  svg {
+    animation: ${props => props.isFavorite ? css`${HeartAnimation} 0.3s ease forwards` : 'none'};
+  }
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.95);
+    color: ${props => props.isFavorite ? '#e00' : '#ff4b4b'};
+  }
 `;
 
 const NoResults = styled.div`

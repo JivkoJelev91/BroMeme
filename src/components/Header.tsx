@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
 import { useAppDispatch, useAppSelector } from 'store';
-import { setActiveTab } from '../redux';
+import { setActiveTab, setBottomText, setMemeImage, setMemeImageName, setTopText } from '../redux';
 import { memeTemplates } from '../memeTemplates';
 import { signOut } from '../redux/slices/authSlice';
 import AuthModal from './AuthModal';
+import { supabase } from '../supabase/supabaseConfig';
 
 // Styled components
 const HeaderContainer = styled.header`
@@ -206,6 +207,39 @@ const SearchResultItem = styled.div`
   }
 `;
 
+const SearchResultContent = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const SearchResultImage = styled.img`
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+`;
+
+const SearchResultText = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const SearchResultCategories = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+`;
+
+const CategoryTag = styled.span`
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  color: #555;
+`;
+
 // Auth-related styled components
 const UserMenu = styled.div`
   position: relative;
@@ -324,8 +358,9 @@ const Header: React.FC = () => {
   
   // Search state
   const [searchText, setSearchText] = useState('');
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const searchTimeout = useRef<NodeJS.Timeout | null>(null);
   
   // Auth state
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -339,25 +374,106 @@ const Header: React.FC = () => {
     setAuthModalOpen(true);
   };
 
+  // Search types
+  interface SearchResult {
+    id: string;
+    name: string;
+    url: string;
+    categories: string[];
+  }
+
   // Search handler
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const text = e.target.value;
     setSearchText(text);
     
-    if (text.length > 2) {
-      const matches = memeTemplates.filter(meme => 
-        meme.name.toLowerCase().includes(text.toLowerCase())
-      );
-      setResults(matches);
-      setShowResults(true);
+    // Clear any existing timeout
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+    
+    if (text.length > 1) {
+      // Set a new timeout
+      searchTimeout.current = setTimeout(async () => {
+        try {
+          const { data, error } = await supabase
+            .from('meme_templates')
+            .select('id, name, url, categories')
+            .ilike('name', `%${text}%`)
+            .limit(10);
+            
+          if (error) {
+            console.error('Search error:', error);
+            return;
+          }
+          
+          setResults(data || []);
+          setShowResults(true);
+        } catch (err) {
+          console.error('Search failed:', err);
+          setResults([]);
+        }
+      }, 300); // 300ms delay before executing search
     } else {
       setShowResults(false);
     }
   };
   
   // Handle result click
-  const handleResultClick = (meme) => {
-    dispatch(setActiveTab(meme.category));
+  const handleResultClick = (template: SearchResult) => {
+    // Reset text layers first
+    dispatch(setTopText(''));
+    dispatch(setBottomText(''));
+    
+    let targetTab = 'all';
+    
+    if (template.categories && template.categories.length > 0) {
+      const firstCategory = template.categories[0];
+      const validTabs = ['popular', 'hot', 'classic', 'reaction', 'cat', 'dog'];
+      
+      if (validTabs.includes(firstCategory)) {
+        targetTab = firstCategory;
+      }
+    }
+    
+    dispatch(setActiveTab(targetTab));
+    
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        try {
+          const dataUrl = canvas.toDataURL('image/png');
+          dispatch(setMemeImage(dataUrl));
+          dispatch(setMemeImageName(template.name));
+          
+          setTimeout(() => {
+            dispatch(setActiveTab('text'));
+          }, 100);
+        } catch (error) {
+          console.error('Error converting image:', error);
+          dispatch(setMemeImage(template.url));
+          dispatch(setMemeImageName(template.name));
+          dispatch(setActiveTab('text'));
+        }
+      }
+    };
+    
+    img.onerror = () => {
+      console.error('Error loading image:', template.url);
+      dispatch(setMemeImage(template.url));
+      dispatch(setMemeImageName(template.name));
+      dispatch(setActiveTab('text'));
+    };
+    
+    img.src = template.url;
+    
     setShowResults(false);
     setSearchText('');
   };
@@ -382,11 +498,26 @@ const Header: React.FC = () => {
 
   const toggleTheme = () => setDark((d) => !d);
 
+  // Add a new useEffect hook to handle clicks outside the search container
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const searchContainer = document.querySelector('.search-container');
+      if (searchContainer && !searchContainer.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <HeaderContainer>
       <HeaderContent>
         <Logo onClick={handleLogoClick}>BroMeme</Logo>
-        <SearchContainer>
+        <SearchContainer className="search-container">
           <SearchIcon>🔍</SearchIcon>
           <SearchInput 
             placeholder="Search all memes" 
@@ -397,12 +528,24 @@ const Header: React.FC = () => {
           {showResults && (
             <SearchResults>
               {results.length > 0 ? (
-                results.map(meme => (
+                results.map(template => (
                   <SearchResultItem 
-                    key={meme.id}
-                    onClick={() => handleResultClick(meme)}
+                    key={template.id}
+                    onClick={() => handleResultClick(template)}
                   >
-                    {meme.name}
+                    <SearchResultContent>
+                      <SearchResultImage src={template.url} alt={template.name} />
+                      <SearchResultText>
+                        <div>{template.name}</div>
+                        {template.categories && template.categories.length > 0 && (
+                          <SearchResultCategories>
+                            {template.categories.map(cat => (
+                              <CategoryTag key={cat}>{cat}</CategoryTag>
+                            ))}
+                          </SearchResultCategories>
+                        )}
+                      </SearchResultText>
+                    </SearchResultContent>
                   </SearchResultItem>
                 ))
               ) : (

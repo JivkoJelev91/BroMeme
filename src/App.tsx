@@ -43,31 +43,9 @@ const EditorContainer = styled.div`
   }
 `;
 
-const TemplateContainer = styled.div`
-  max-width: 1000px;
-  width: 100%;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  margin-bottom: 0.75rem;
-  min-height: 450px; /* Match the height of the editor container */
-`;
-
 const HotMemesContainer = styled.div`
   max-width: 1000px;
   width: 100%;
-`;
-
-// Add with your other styled components
-const TemplatesContainer = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
 `;
 
 function App() {
@@ -160,9 +138,12 @@ const renderMainContent = () => {
     );
   } 
   // These are your template category tabs
-  else if (['popular', 'hot', 'classic', 'reaction', 'cat', 'dog', 'all'].includes(activeTab)) {
+  else if (['popular', 'hot', 'classic', 'reaction', 'cat', 'dog', 'all', 'favorites'].includes(activeTab)) {
     return (
-        <MemeTemplatesPanel category={activeTab} />
+      <MemeTemplatesPanel 
+      category={activeTab} 
+      isFavorites={activeTab === 'favorites'} 
+    />
     );
   }
   
