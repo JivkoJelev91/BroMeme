@@ -1,12 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useAppDispatch } from 'store';
 import { setActiveTab, setMemeImage, setMemeImageName } from '../redux';
 import { getPopularMemes, MemeTemplate } from '../memeTemplates';
+import { supabase } from '../supabase/supabaseConfig';
 
 const HotMemes: React.FC = () => {
-  const [hotMemes] = useState(getPopularMemes());
+  const [hotMemes, setHotMemes] = useState<MemeTemplate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const dispatch = useAppDispatch();
+  
+  useEffect(() => {
+    const fetchHotMemes = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Fetch memes from Supabase
+        const { data, error } = await supabase
+          .from('meme_templates')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(5);
+        
+        if (error) throw new Error(error.message);
+        
+        if (data) {
+          setHotMemes(data);
+        }
+      } catch (err: any) {
+        console.error('Error fetching hot memes:', err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchHotMemes();
+  }, []);
   
   const handleSelectMeme = (meme: MemeTemplate) => {
     const img = new Image();
@@ -52,24 +84,90 @@ const HotMemes: React.FC = () => {
         </ViewAllLink>
       </HeaderRow>
       
-      <MemeGrid>
-        {hotMemes.slice(0,5).map(meme => (
-          <MemeCard 
-            key={meme.id}
-            onClick={() => handleSelectMeme(meme)}
-          >
-            <MemeImageContainer>
-              <MemeImage src={meme.url} alt={meme.name} />
-            </MemeImageContainer>
-            <MemeName>{meme.name}</MemeName>
-          </MemeCard>
-        ))}
-      </MemeGrid>
+      {isLoading ? (
+        <LoadingContainer>
+          <LoadingSpinner />
+          <LoadingText>Loading hot templates...</LoadingText>
+        </LoadingContainer>
+      ) : error ? (
+        <ErrorMessage>
+          Failed to load templates. Please try again later.
+        </ErrorMessage>
+      ) : hotMemes.length === 0 ? (
+        <EmptyState>
+          <EmptyText>No templates available yet.</EmptyText>
+        </EmptyState>
+      ) : (
+        <MemeGrid>
+          {hotMemes.map(meme => (
+            <MemeCard 
+              key={meme.id}
+              onClick={() => handleSelectMeme(meme)}
+            >
+              <MemeImageContainer>
+                <MemeImage src={meme.url} alt={meme.name} />
+              </MemeImageContainer>
+              <MemeName>{meme.name}</MemeName>
+            </MemeCard>
+          ))}
+        </MemeGrid>
+      )}
     </Container>
   );
 };
 
-// Styled components
+// Add new styled components for loading and error states
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: ${({ theme }) => theme.colors.text.secondary};
+`;
+
+const LoadingSpinner = styled.div`
+  border: 3px solid ${({ theme }) => theme.colors.divider};
+  border-top: 3px solid ${({ theme }) => theme.colors.primary};
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+const LoadingText = styled.div`
+  font-size: 0.9rem;
+`;
+
+const ErrorMessage = styled.div`
+  color: ${({ theme }) => theme.colors.error};
+  background: ${({ theme }) => theme.colors.error}15;
+  padding: 1rem;
+  border-radius: 4px;
+  text-align: center;
+  margin: 2rem 0;
+`;
+
+const EmptyState = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: ${({ theme }) => theme.colors.text.secondary};
+`;
+
+const EmptyText = styled.div`
+  font-size: 0.9rem;
+  text-align: center;
+`;
+
 const Container = styled.div`
   background: ${({ theme }) => theme.colors.cardBackground};
   border-radius: 0.5rem;

@@ -5,6 +5,7 @@ import { setMemeImage, setMemeImageName, setActiveTab } from '../redux';
 import { supabase } from '../supabase/supabaseConfig';
 import { FiHeart } from 'react-icons/fi';
 import { FaHeart } from 'react-icons/fa';
+import AuthModal from './AuthModal';
 
 interface MemeTemplate {
   id: string;
@@ -27,6 +28,7 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+    const [authModalOpen, setAuthModalOpen] = useState(false);
   const dispatch = useAppDispatch();
   const { user } = useAppSelector(state => state.auth);
 
@@ -238,11 +240,24 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
           <Spinner />
           <div>Loading templates...</div>
         </LoadingContainer>
-      ) : error ? (
+      ) : error && error !== 'You must be logged in to view favorites' ? (
         <ErrorContainer>
           <div>Error loading templates: {error}</div>
           <RefreshButton onClick={fetchTemplates}>Try Again</RefreshButton>
         </ErrorContainer>
+      ) : !user && isFavorites ? (
+        <LoginPromptContainer>
+          <LoginIcon>❤️</LoginIcon>
+          <LoginTitle>Your Favorites Await!</LoginTitle>
+          <LoginMessage>
+            Log in to save your favorite meme templates and access them anytime.
+          </LoginMessage>
+       <LoginButton onClick={() => {
+          setAuthModalOpen(true)
+        }}>
+          Sign In
+        </LoginButton>
+        </LoginPromptContainer>
       ) : (
         <TemplatesGrid>
           {templates.length > 0 ? (
@@ -282,6 +297,11 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
           )}
         </TemplatesGrid>
       )}
+         {/* Auth Modal */}
+            <AuthModal 
+              isOpen={authModalOpen} 
+              onClose={() => setAuthModalOpen(false)}
+            />
     </Container>
   );
 };
@@ -479,6 +499,64 @@ const DebugButton = styled.button`
   
   &:hover {
     background: ${({ theme }) => theme.colors.divider};
+  }
+`;
+
+const LoginPromptContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
+  color: ${({ theme }) => theme.colors.text.primary};
+  padding: 2rem;
+`;
+
+const LoginIcon = styled.div`
+  font-size: 2rem;
+  margin-bottom: 1rem;
+`;
+
+const LoginTitle = styled.h3`
+  font-size: 1.5rem;
+  margin: 0;
+  margin-bottom: 0.5rem;
+`;
+
+const LoginMessage = styled.p`
+  font-size: 1rem;
+  margin: 0;
+  margin-bottom: 1rem;
+`;
+
+const LoginButton = styled.button`
+  background: ${({ theme }) => theme.colors.primary};
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 1rem;
+  color: ${({ theme }) => theme.colors.text.inverse};
+  
+  &:hover {
+    background: ${({ theme }) => theme.colors.primaryHover};
+  }
+`;
+
+const SecondaryAction = styled.div`
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.colors.text.secondary};
+`;
+
+const ActionLink = styled.span`
+  color: ${({ theme }) => theme.colors.primary};
+  cursor: pointer;
+  text-decoration: underline;
+  
+  &:hover {
+    color: ${({ theme }) => theme.colors.primaryHover};
   }
 `;
 

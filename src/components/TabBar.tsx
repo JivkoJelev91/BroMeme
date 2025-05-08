@@ -112,7 +112,7 @@ const TabBar: React.FC = () => {
         </Tab>
         
         <Tab 
-          active={activeTab === 'cats'}
+          active={activeTab === 'cat'}
           onClick={() => dispatch(setActiveTab('cat'))}
           data-tab="cats"
         >
@@ -121,7 +121,7 @@ const TabBar: React.FC = () => {
         </Tab>
         
         <Tab 
-          active={activeTab === 'dogs'}
+          active={activeTab === 'dog'}
           onClick={() => dispatch(setActiveTab('dog'))}
           data-tab="dogs"
         >
