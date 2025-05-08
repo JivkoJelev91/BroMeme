@@ -34,6 +34,7 @@ This project was built in a flow state with the help of multiple AI tools — wh
 
 - 🖼️ Meme Template Library: Browse by category:
   - `popular`, `hot`, `classic`, `reaction`, `cat`, `dog`, `favorites`
+- 🔍 **Smart Search with Image Suggestions**: Search meme templates with keyword assistance and visual hints  
 - ✏️ Editor Tools:
   - Add custom text to memes
   - Draw on images
@@ -42,8 +43,9 @@ This project was built in a flow state with the help of multiple AI tools — wh
 - 📤 Upload your image  
 - 📦 Download as PNG  
 - 🔥 Trending & categorized meme templates  
-- 💖 **Favorite Functionality**: Users can favorite memes for quick access later  
 - 🌐 Category Tabs for quick discovery  
+- 💖 **Favorite Functionality**: Users can favorite memes for quick access later  
+- 🌗 **Dark/Light Theme Toggle**  
 - 🔐 **Login with Google**
 
 ---
@@ -51,7 +53,6 @@ This project was built in a flow state with the help of multiple AI tools — wh
 ## 🔧 Upcoming Features
 
 - 🤖 **AI Editor**: Automatically generate memes from prompts  
-- 🌗 **Dark/Light Theme Toggle**  
 - 🔐 **User Authentication**
 - 🌍 **Login with Other Social Media Platforms** (Facebook, Twitter, GitHub, etc.)
 
