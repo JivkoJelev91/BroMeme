@@ -32,7 +32,8 @@ This project was built in a flow state with the help of multiple AI tools — wh
 
 ## 🚀 Features
 
-- 🖼️ Meme Template Library: Browse popular, classic, reaction, cat, and dog memes  
+- 🖼️ Meme Template Library: Browse by category:
+  - `popular`, `hot`, `classic`, `reaction`, `cat`, `dog`, `favorites`
 - ✏️ Editor Tools:
   - Add custom text to memes
   - Draw on images
@@ -40,7 +41,8 @@ This project was built in a flow state with the help of multiple AI tools — wh
   - Rotate images
 - 📤 Upload your image  
 - 📦 Download as PNG  
-- 🔥 Hot Meme Templates section  
+- 🔥 Trending & categorized meme templates  
+- 💖 **Favorite Functionality**: Users can favorite memes for quick access later  
 - 🌐 Category Tabs for quick discovery  
 - 🔐 **Login with Google**
 
