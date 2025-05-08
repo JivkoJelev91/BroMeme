@@ -10,8 +10,8 @@ const FooterContainer = styled.footer`
   align-items: center;
   justify-content: center;
   padding: 0.5rem 1rem;
-  background: #f9f9f9;
-  border-top: 1px solid #eaeaea;
+  background: ${({ theme }) => theme.colors.background};
+  border-top: 1px solid ${({ theme }) => theme.colors.border.light};
   
   @media (max-width: 600px) {
     padding: 0.5rem;
@@ -24,9 +24,9 @@ const FooterContent = styled.div`
   justify-content: space-between;
   max-width: 1000px;
   width: 100%;
-  background: white;
+  background: ${({ theme }) => theme.colors.cardBackground};
   border-radius: 0.5rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 4px ${({ theme }) => theme.colors.shadow};
   padding: 0.75rem 1rem;
   
   @media (max-width: 768px) {
@@ -38,13 +38,13 @@ const FooterContent = styled.div`
 
 const Copyright = styled.div`
   font-size: 0.85rem;
-  color: #666;
+  color: ${({ theme }) => theme.colors.text.secondary};
   display: flex;
   align-items: center;
   
   svg {
     margin: 0 0.25rem;
-    color: #ff6b6b;
+    color: ${({ theme }) => theme.colors.favorite};
   }
   
   @media (max-width: 768px) {

@@ -52,18 +52,8 @@ const TabBar: React.FC = () => {
   };
   
   return (
-    <TabContainer>
-      {showScrollButtons && (
-        <ScrollButton 
-          direction="left" 
-          onClick={() => scrollTabs('left')}
-          aria-label="Scroll tabs left"
-        >
-          ◀
-        </ScrollButton>
-      )}
-      
-      <TabList ref={tabListRef}>
+    <TabBarContainer>
+      <TabsGroup>
         {/* Editor tab */}
         <Tab 
           active={activeTab === 'text' || activeTab === 'effects' || activeTab === 'draw' || activeTab === 'rotate'}
@@ -71,22 +61,21 @@ const TabBar: React.FC = () => {
           data-tab="text"
         >
           <TabIcon>✏️</TabIcon>
-          Editor
+          <TabLabel>Editor</TabLabel>
         </Tab>
         
         {/* AI Editor tab - DISABLED */}
-        <DisabledTab>
+        <Tab active={false} style={{ cursor: 'not-allowed', opacity: 0.5 }}>
           <TabIcon>🤖</TabIcon>
-          AI Editor
-        </DisabledTab>
-        
+          <TabLabel>AI Editor</TabLabel>
+        </Tab>
         {/* Template category tabs */}
         <Tab 
           active={activeTab === 'favorites'} 
           onClick={() => dispatch(setActiveTab('favorites'))}
         >
           <TabIcon>🎭</TabIcon>
-          Favorites
+          <TabLabel>Favorites</TabLabel>
         </Tab>
         <Tab 
           active={activeTab === 'popular'}
@@ -94,7 +83,7 @@ const TabBar: React.FC = () => {
           data-tab="popular"
         >
           <TabIcon>🔥</TabIcon>
-          Popular Memes
+          <TabLabel>Popular</TabLabel>
         </Tab>
 
         <Tab 
@@ -102,7 +91,7 @@ const TabBar: React.FC = () => {
           onClick={() => dispatch(setActiveTab('hot'))}
         >
           <TabIcon>⚡</TabIcon>
-          Hot Memes
+          Hot
         </Tab>
         
         <Tab 
@@ -110,7 +99,7 @@ const TabBar: React.FC = () => {
           onClick={() => dispatch(setActiveTab('classic'))}
         >
           <TabIcon>🏆</TabIcon>
-          Classic Memes
+          Classi
         </Tab>
         
         <Tab 
@@ -119,7 +108,7 @@ const TabBar: React.FC = () => {
           data-tab="reaction"
         >
           <TabIcon>😂</TabIcon>
-          Reaction Memes
+          <TabLabel>Reaction</TabLabel>
         </Tab>
         
         <Tab 
@@ -128,7 +117,7 @@ const TabBar: React.FC = () => {
           data-tab="cats"
         >
           <TabIcon>🐱</TabIcon>
-          Cat Memes
+          <TabLabel>Cat</TabLabel>
         </Tab>
         
         <Tab 
@@ -137,170 +126,117 @@ const TabBar: React.FC = () => {
           data-tab="dogs"
         >
           <TabIcon>🐶</TabIcon>
-          Dog Memes
+          <TabLabel>Dog</TabLabel>
         </Tab>
         <Tab 
           active={activeTab === 'all'} 
           onClick={() => dispatch(setActiveTab('all'))}
         >
           <TabIcon>🎭</TabIcon>
-          All
+          <TabLabel>All</TabLabel>
         </Tab>
-      </TabList>
-      
-      {showScrollButtons && (
-        <ScrollButton 
-          direction="right" 
-          onClick={() => scrollTabs('right')}
-          aria-label="Scroll tabs right"
-        >
-          ▶
-        </ScrollButton>
-      )}
-    </TabContainer>
+      </TabsGroup>
+    </TabBarContainer>
   );
 };
 
 // Styled components
-const TabContainer = styled.div`
+const TabBarContainer = styled.div`
+  display: flex;
+  background: ${({ theme }) => theme.colors.cardBackground};
+  border-radius: 8px;
+  box-shadow: 0 2px 4px ${({ theme }) => theme.colors.shadow};
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
   max-width: 1000px;
   width: 100%;
-  padding: 0 1.75rem;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  margin-bottom: 0.75rem;
-  position: relative;
-  display: flex;
-  align-items: center;
-`;
-
-const TabList = styled.div`
-  display: flex;
   overflow-x: auto;
-  scrollbar-width: none; /* Hide scrollbar for Firefox */
-  padding: 0.25rem 0;
-  scroll-behavior: smooth;
-  flex: 1;
+  scroll-behavior: smooth; /* Add smooth scrolling */
   
-  /* Hide scrollbar for Chrome, Safari and Opera */
+  /* Add space between tab groups */
+  justify-content: space-between;
+  
+  /* Hide scrollbar but keep functionality */
   &::-webkit-scrollbar {
-    display: none;
+    height: 0;
+    width: 0;
   }
+  scrollbar-width: none;
   
-  /* Make sure all tabs fit */
-  & > * {
-    flex-shrink: 0;
-  }
+  /* Add snap scrolling for better tab alignment */
+  scroll-snap-type: x mandatory;
+  
+  /* Prevent scroll chaining */
+  overscroll-behavior-x: contain;
 `;
 
-const ScrollButton = styled.button<{ direction: 'left' | 'right' }>`
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
+const TabsGroup = styled.div`
   display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #5f6368;
-  font-size: 10px;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  gap: 0.25rem;
   
-  ${props => props.direction === 'left' ? 'left: 4px;' : 'right: 4px;'}
-  
-  &:hover {
-    background: #f5f5f5;
-    color: #4285f4;
+  /* Make first group stay left and second group stay right */
+  &:first-child {
+    margin-right: auto;
   }
   
-  &:active {
-    background: #e0e0e0;
+  &:last-child {
+    margin-left: auto;
   }
 `;
 
 const Tab = styled.button<{ active: boolean }>`
-  padding: 0.75rem 0.85rem;
-  background: transparent;
-  border: none;
-  font-size: 0.9rem;
-  cursor: pointer;
-  color: ${props => props.active ? '#4285f4' : '#5f6368'};
-  font-weight: ${props => props.active ? '600' : 'normal'};
-  position: relative;
-  white-space: nowrap;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  
-  @media (max-width: 600px) {
-    padding: 0.75rem 0.7rem;
-    font-size: 0.85rem;
-  }
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: ${props => props.active ? '#4285f4' : 'transparent'};
-    border-radius: 3px 3px 0 0;
-  }
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  border: none;
+  background: ${props => props.active ? 
+    props.theme.colors.secondary : 'transparent'};
+  color: ${props => props.active ? 
+    props.theme.colors.primary : props.theme.colors.text.secondary};
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 95px; /* Fixed width for all tabs */
+  min-height: 70px; /* Ensure consistent height */
   
   &:hover {
-    color: #4285f4;
+    background: ${props => props.active ? 
+      props.theme.colors.secondary : 
+      props.theme.colors.divider};
+  }
+  
+  /* Make it responsive for smaller screens */
+  @media (max-width: 768px) {
+    width: 90px;
+    min-height: 65px;
+    padding: 0.6rem 0.4rem;
+  }
+  
+  @media (max-width: 576px) {
+    width: 80px;
+    min-height: 60px;
+    padding: 0.5rem 0.3rem;
   }
 `;
 
-// Disabled tab styling
-const DisabledTab = styled.div`
-  padding: 0.75rem 0.85rem;
-  background: transparent;
-  border: none;
-  font-size: 0.9rem;
-  cursor: not-allowed;
-  color: #a0a0a0;
-  font-weight: normal;
-  position: relative;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  opacity: 0.7;
-  
-  @media (max-width: 600px) {
-    padding: 0.75rem 0.7rem;
-    font-size: 0.85rem;
-  }
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: transparent;
-    border-radius: 3px 3px 0 0;
-  }
-`;
-
-const TabIcon = styled.span`
-  font-size: 1.2rem;
+const TabIcon = styled.div`
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  
-  @media (max-width: 600px) {
-    font-size: 1.1rem;
-  }
+`;
+
+const TabLabel = styled.div`
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 export default TabBar;

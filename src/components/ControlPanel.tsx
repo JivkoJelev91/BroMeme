@@ -110,19 +110,19 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 // Styled components
 const ControlsContainer = styled.div`
   flex: 0 0 40%;
-  border-left: 1px solid #eaeaea;
+  border-left: 1px solid ${({ theme }) => theme.colors.border.light};
   position: relative;
-  height: 450px; /* Match MemeCard height */
+  height: 400px; /* Match MemeCard height */
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  background: ${({ theme }) => theme.colors.cardBackground};
   
   @media (max-width: 768px) {
     flex: 1 0 100%;
     height: auto;
     min-height: 400px;
     border-left: none;
-    border-top: 1px solid #eaeaea;
+    border-top: 1px solid ${({ theme }) => theme.colors.border.light};
     margin-top: 1rem;
   }
 `;
@@ -162,12 +162,12 @@ const ButtonSpacer = styled.div`
 
 const StickyButtonContainer = styled.div`
   position: absolute;
-  bottom: -5px;
+  bottom: -65px;
   left: 0;
   right: 0;
   padding: 1.25rem;
-  background: white;
-  border-top: 1px solid #f5f5f5;
+  background: ${({ theme }) => theme.colors.cardBackground};
+  border-top: 1px solid ${({ theme }) => theme.colors.divider};
   z-index: 10;
   
   @media (max-width: 768px) {
@@ -177,7 +177,7 @@ const StickyButtonContainer = styled.div`
 
 const ControlTabs = styled.div`
   display: flex;
-  border-bottom: 1px solid #eaeaea;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border.light};
   margin-bottom: 1.25rem;
   
   @media (max-width: 768px) {
@@ -208,7 +208,9 @@ const ControlTab = styled.button<{ active?: boolean }>`
   background: none;
   font-size: 1rem;
   cursor: pointer;
-  color: ${props => props.active ? '#000' : '#777'};
+  color: ${props => props.active ? 
+    props.theme.colors.text.primary : 
+    props.theme.colors.text.secondary};
   position: relative;
   display: flex;
   flex-direction: column;
@@ -230,7 +232,8 @@ const ControlTab = styled.button<{ active?: boolean }>`
     left: 0;
     width: 100%;
     height: 3px;
-    background: ${props => props.active ? '#4285f4' : 'transparent'};
+    background: ${props => props.active ? 
+      props.theme.colors.primary : 'transparent'};
   }
 `;
 
@@ -239,7 +242,7 @@ const MemeTitle = styled.h2`
   font-weight: 600;
   margin: 0;
   margin-bottom: 1.25rem;
-  color: #222;
+  color: ${({ theme }) => theme.colors.text.primary};
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -256,7 +259,7 @@ const MemeTitle = styled.h2`
 
 const GenerateButton = styled.button`
   width: 100%;
-  background: #4285f4;
+  background: ${({ theme }) => theme.colors.primary};
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -267,16 +270,64 @@ const GenerateButton = styled.button`
   transition: background 0.2s;
   
   &:hover {
-    background: #3367d6;
+    background: ${({ theme }) => theme.colors.primary}dd;
   }
   
   &:disabled {
-    background: #a1c0fa;
+    background: ${({ theme }) => theme.colors.primary}66;
     cursor: not-allowed;
   }
   
   @media (max-width: 768px) {
     padding: 0.75rem 0;
+  }
+`;
+
+const PanelContainer = styled.div`
+  background: ${({ theme }) => theme.colors.cardBackground};
+  border-radius: 8px;
+  box-shadow: 0 2px 4px ${({ theme }) => theme.colors.shadow};
+  overflow: hidden;
+  
+  @media (min-width: 768px) {
+    width: 38%;
+  }
+  
+  @media (max-width: 767px) {
+    margin-top: 1rem;
+  }
+`;
+
+const PanelHeader = styled.div`
+  padding: 1rem;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.divider};
+`;
+
+const PanelTitle = styled.h3`
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.text.primary};
+`;
+
+const PanelContent = styled.div`
+  padding: 1rem;
+`;
+
+const ActionButton = styled.button`
+  background: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+  
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary}dd;
   }
 `;
 

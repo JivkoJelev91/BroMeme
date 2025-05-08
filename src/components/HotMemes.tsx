@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useAppDispatch } from 'store';
-import { setMemeImage, setMemeImageName } from '../redux';
+import { setActiveTab, setMemeImage, setMemeImageName } from '../redux';
 import { getPopularMemes, MemeTemplate } from '../memeTemplates';
 
 const HotMemes: React.FC = () => {
@@ -46,7 +46,7 @@ const HotMemes: React.FC = () => {
         <Title>Hot Meme Templates</Title>
         <ViewAllLink href="#" onClick={(e) => {
           e.preventDefault();
-          document.querySelector('button[data-tab="text"]')?.click();
+          dispatch(setActiveTab('hot'));
         }}>
           View All
         </ViewAllLink>
@@ -71,10 +71,10 @@ const HotMemes: React.FC = () => {
 
 // Styled components
 const Container = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.cardBackground};
   border-radius: 0.5rem;
   padding: 1.25rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 6px ${({ theme }) => theme.colors.shadow};
 `;
 
 const HeaderRow = styled.div`
@@ -88,11 +88,11 @@ const Title = styled.h2`
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
-  color: #333;
+  color: ${({ theme }) => theme.colors.text.primary};
 `;
 
 const ViewAllLink = styled.a`
-  color: #4285f4;
+  color: ${({ theme }) => theme.colors.primary};
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
@@ -112,19 +112,20 @@ const MemeCard = styled.div`
   cursor: pointer;
   border-radius: 6px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px ${({ theme }) => theme.colors.shadow};
   transition: transform 0.2s, box-shadow 0.2s;
+  background: ${({ theme }) => theme.colors.cardBackground};
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 3px 8px ${({ theme }) => theme.colors.shadow};
   }
 `;
 
 const MemeImageContainer = styled.div`
   height: 140px;
   overflow: hidden;
-  background: #f0f0f0;
+  background: ${({ theme }) => theme.colors.divider};
 `;
 
 const MemeImage = styled.img`
@@ -137,11 +138,11 @@ const MemeImage = styled.img`
 const MemeName = styled.div`
   padding: 0.75rem;
   font-size: 0.9rem;
-  color: #333;
+  color: ${({ theme }) => theme.colors.text.primary};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-top: 1px solid #f5f5f5;
+  border-top: 1px solid ${({ theme }) => theme.colors.divider};
 `;
 
 export default HotMemes;

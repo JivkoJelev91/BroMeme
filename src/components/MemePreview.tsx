@@ -176,93 +176,138 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
 
   return (
     <PreviewContainer>
-      <MemeCard ref={memeRef}>
-        {memeImage ? (
-          <>
-            <MemeImage 
-              ref={imgRef}
-              src={memeImage} 
-              alt="Meme" 
-              blur={blur} 
-              grayscale={grayscale}
-              rotation={imageRotationAngle}
-              onLoad={handleImageLoad}
-            />
-            <DrawingCanvas 
-              ref={canvasRef}
-              onMouseDown={startDrawing}
-              onMouseMove={draw}
-              onMouseUp={finishDrawing}
-              onMouseLeave={finishDrawing}
-              rotation={imageRotationAngle}
-              isDrawing={isDrawing}
-              isDrawPanelActive={activeTab === 'draw'}
-            />
-            {topText && (
-              <MemeText
-                position="top"
-                bold={bold}
-                shadow={shadow}
-                rotation={rotationAngle}
-                fontSize={topFontSize}
-                fontFamily={topFontFamily}
-                textAlign={topTextAlign}
-              >
-                {topText}
-              </MemeText>
-            )}
-            {bottomText && (
-              <MemeText
-                position="bottom"
-                bold={bold}
-                shadow={shadow}
-                rotation={rotationAngle}
-                fontSize={bottomFontSize}
-                fontFamily={bottomFontFamily}
-                textAlign={bottomTextAlign}
-              >
-                {bottomText}
-              </MemeText>
-            )}
-          </>
-        ) : (
-          <div style={{ color: '#888', fontSize: '1.1rem', textAlign: 'center', width: '100%', padding: '0 2rem' }}>
-            Upload an image to create your meme
-          </div>
-        )}
-      </MemeCard>
+      <PreviewHeader>
+        <PreviewTitle>Meme Preview</PreviewTitle>
+      </PreviewHeader>
+      <MemeContainer>
+        <MemeCard ref={memeRef}>
+          {memeImage ? (
+            <>
+              <MemeImage 
+                ref={imgRef}
+                src={memeImage} 
+                alt="Meme" 
+                blur={blur} 
+                grayscale={grayscale}
+                rotation={imageRotationAngle}
+                onLoad={handleImageLoad}
+              />
+              <DrawingCanvas 
+                ref={canvasRef}
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={finishDrawing}
+                onMouseLeave={finishDrawing}
+                rotation={imageRotationAngle}
+                isDrawing={isDrawing}
+                isDrawPanelActive={activeTab === 'draw'}
+              />
+              {topText && (
+                <MemeText
+                  position="top"
+                  bold={bold}
+                  shadow={shadow}
+                  rotation={rotationAngle}
+                  fontSize={topFontSize}
+                  fontFamily={topFontFamily}
+                  textAlign={topTextAlign}
+                >
+                  {topText}
+                </MemeText>
+              )}
+              {bottomText && (
+                <MemeText
+                  position="bottom"
+                  bold={bold}
+                  shadow={shadow}
+                  rotation={rotationAngle}
+                  fontSize={bottomFontSize}
+                  fontFamily={bottomFontFamily}
+                  textAlign={bottomTextAlign}
+                >
+                  {bottomText}
+                </MemeText>
+              )}
+            </>
+          ) : (
+            <div style={{ color: '#888', fontSize: '1.1rem', textAlign: 'center', width: '100%', padding: '0 2rem' }}>
+              Upload an image to create your meme
+            </div>
+          )}
+        </MemeCard>
+      </MemeContainer>
     </PreviewContainer>
   );
 };
 
 // Styled components
 const PreviewContainer = styled.div`
-  flex: 0 0 60%;
+  background: ${({ theme }) => theme.colors.cardBackground};
+  border-radius: 8px;
+  box-shadow: 0 2px 4px ${({ theme }) => theme.colors.shadow};
+  overflow: hidden;
+  flex: 1;
+  
+  @media (min-width: 768px) {
+    max-width: 60%;
+  }
+`;
+
+const PreviewHeader = styled.div`
+  padding: 1rem;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.divider};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const PreviewTitle = styled.h3`
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.text.primary};
+`;
+
+const MemeContainer = styled.div`
+  width: 100%;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem;
-  background: white;
+  min-height: 300px;
+  padding: 1.5rem;
+  
+  @media (min-width: 768px) {
+    min-height: 400px;
+  }
 `;
 
 const MemeCard = styled.div`
-  width: 450px;
-  height: 450px;
-  background-color: #f0f0f0;
+  width: 100%;
+  max-width: 450px;
+  height: auto;
+  max-height: calc(100vh - 250px);
+  background: ${({ theme }) => theme.colors.cardBackground};
   border-radius: 4px;
   overflow: hidden;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 12px ${({ theme }) => theme.colors.shadow};
+  aspect-ratio: auto;
+  
+  border: none;
 `;
 
 const MemeImage = styled.img<{ blur: boolean; grayscale: boolean; rotation: number }>`
-  max-width: 100%;
-  max-height: 100%;
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   transform: rotate(${props => props.rotation}deg);
   transition: transform 0.3s ease;
+  
   ${({ blur }) => blur && css`filter: blur(3px);`}
   ${({ grayscale, blur }) => grayscale && css`
     filter: ${blur ? 'grayscale(1) blur(3px)' : 'grayscale(1)'};
@@ -319,6 +364,7 @@ const DrawingCanvas = styled.canvas<{
   height: 100%;
   transform: ${props => `rotate(${props.rotation}deg)`};
   pointer-events: ${props => props.isDrawPanelActive ? 'auto' : 'none'};
+  z-index: 10;
 `;
 
 export default MemePreview;

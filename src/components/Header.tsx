@@ -6,6 +6,8 @@ import { memeTemplates } from '../memeTemplates';
 import { signOut } from '../redux/slices/authSlice';
 import AuthModal from './AuthModal';
 import { supabase } from '../supabase/supabaseConfig';
+import { useTheme } from '../ThemeProvider';
+import { FiSun, FiMoon } from 'react-icons/fi';
 
 // Styled components
 const HeaderContainer = styled.header`
@@ -13,8 +15,8 @@ const HeaderContainer = styled.header`
   align-items: center;
   justify-content: center;
   padding: 0.5rem 1rem;
-  background: #f9f9f9;
-  border-bottom: 1px solid #eaeaea;
+  background: ${({ theme }) => theme.colors.background};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border.light};
   
   @media (max-width: 600px) {
     padding: 0.5rem;
@@ -26,9 +28,9 @@ const HeaderContent = styled.div`
   align-items: center;
   max-width: 1000px;
   width: 100%;
-  background: white;
+  background: ${({ theme }) => theme.colors.cardBackground};
   border-radius: 0.5rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 4px ${({ theme }) => theme.colors.shadow};
   padding: 0.5rem 1rem;
   
   @media (max-width: 600px) {
@@ -42,7 +44,7 @@ const Logo = styled.h1`
   font-weight: bold;
   margin: 0;
   margin-right: 1rem;
-  color: #333;
+  color: ${({ theme }) => theme.colors.text.primary};
   cursor: pointer;
   
   @media (max-width: 600px) {
@@ -58,8 +60,8 @@ const Logo = styled.h1`
 const SearchContainer = styled.div`
   display: flex;
   align-items: center;
-  background: white;
-  border: 1px solid #ddd;
+  background: ${({ theme }) => theme.colors.input.background};
+  border: 1px solid ${({ theme }) => theme.colors.border.medium};
   border-radius: 999px;
   padding: 0.4rem 0.8rem;
   flex: 1;
@@ -82,7 +84,7 @@ const SearchContainer = styled.div`
 
 const SearchIcon = styled.span`
   margin-right: 0.5rem;
-  color: #777;
+  color: ${({ theme }) => theme.colors.text.tertiary};
   
   @media (max-width: 600px) {
     margin-right: 0.3rem;
@@ -95,6 +97,12 @@ const SearchInput = styled.input`
   outline: none;
   flex: 1;
   font-size: 1rem;
+  background: transparent;
+  color: ${({ theme }) => theme.colors.text.primary};
+  
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.input.placeholder};
+  }
   
   @media (max-width: 600px) {
     font-size: 0.9rem;
@@ -115,7 +123,7 @@ const HeaderActions = styled.div`
 const Avatar = styled.div`
   width: 38px;
   height: 38px;
-  background: #4285f4;
+  background: ${({ theme }) => theme.colors.avatarBackground};
   color: white;
   border-radius: 50%;
   display: flex;
@@ -132,16 +140,17 @@ const Avatar = styled.div`
   }
 `;
 
-const ThemeToggle = styled.button<{ dark: boolean }>`
+const ThemeToggle = styled.button<{ isDark: boolean }>`
   margin-left: 1rem;
-  background: none;
-  border: 1px solid #ccc;
+  background: ${({ theme, isDark }) => 
+    isDark ? theme.colors.secondary : '#f5f5f5'};
+  border: 1px solid ${({ theme }) => theme.colors.border.medium};
   border-radius: 999px;
   padding: 0.4rem 0.8rem;
   cursor: pointer;
   font-size: 1.3rem;
-  color: #555;
-  background-color: #f5f5f5;
+  color: ${({ theme, isDark }) => 
+    isDark ? theme.colors.text.primary : theme.colors.text.secondary};
   transition: background 0.2s, border-color 0.2s;
   display: flex;
   align-items: center;
@@ -150,13 +159,14 @@ const ThemeToggle = styled.button<{ dark: boolean }>`
   overflow: hidden;
   
   &:hover {
-    background: #e0e0e0;
-    border-color: #888;
+    background: ${({ theme, isDark }) => 
+      isDark ? theme.colors.secondary : '#e0e0e0'};
+    border-color: ${({ theme }) => theme.colors.border.medium};
   }
   
   svg {
     transition: transform 0.5s cubic-bezier(0.4,2,0.6,1), opacity 0.3s;
-    transform: rotate(${props => props.dark ? '360deg' : '0deg'});
+    transform: rotate(${props => props.isDark ? '360deg' : '0deg'});
     opacity: 1;
   }
   
@@ -177,9 +187,9 @@ const SearchResults = styled.div`
   top: calc(100% + 5px);
   left: 0;
   right: 0;
-  background: white;
+  background: ${({ theme }) => theme.colors.cardBackground};
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px ${({ theme }) => theme.colors.shadow};
   max-height: 300px;
   overflow-y: auto;
   z-index: 100;
@@ -194,11 +204,11 @@ const SearchResultItem = styled.div`
   cursor: pointer;
   
   &:hover {
-    background: #f5f5f5;
+    background: ${({ theme }) => theme.colors.divider};
   }
 
   &:not(:last-child) {
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.divider};
   }
   
   @media (max-width: 600px) {
@@ -223,6 +233,7 @@ const SearchResultImage = styled.img`
 const SearchResultText = styled.div`
   display: flex;
   flex-direction: column;
+  color: ${({ theme }) => theme.colors.text.primary};
 `;
 
 const SearchResultCategories = styled.div`
@@ -235,9 +246,9 @@ const SearchResultCategories = styled.div`
 const CategoryTag = styled.span`
   font-size: 0.7rem;
   padding: 1px 6px;
-  background-color: #f0f0f0;
+  background-color: ${({ theme }) => theme.colors.categoryTag};
   border-radius: 4px;
-  color: #555;
+  color: ${({ theme }) => theme.colors.text.secondary};
 `;
 
 // Auth-related styled components
@@ -257,9 +268,9 @@ const UserDropdown = styled.div`
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: white;
+  background: ${({ theme }) => theme.colors.cardBackground};
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px ${({ theme }) => theme.colors.shadow};
   padding: 0.75rem;
   min-width: 180px;
   visibility: hidden;
@@ -275,10 +286,10 @@ const UserDropdown = styled.div`
     right: 10px;
     width: 12px;
     height: 12px;
-    background: white;
+    background: ${({ theme }) => theme.colors.cardBackground};
     transform: rotate(45deg);
-    border-top: 1px solid rgba(0,0,0,0.05);
-    border-left: 1px solid rgba(0,0,0,0.05);
+    border-top: 1px solid ${({ theme }) => theme.colors.shadow};
+    border-left: 1px solid ${({ theme }) => theme.colors.shadow};
   }
 `;
 
@@ -291,12 +302,12 @@ const UserInfo = styled.div`
 const UserName = styled.div`
   font-weight: 600;
   font-size: 0.9rem;
-  color: #333;
+  color: ${({ theme }) => theme.colors.text.primary};
 `;
 
 const UserEmail = styled.div`
   font-size: 0.8rem;
-  color: #777;
+  color: ${({ theme }) => theme.colors.text.secondary};
   max-width: 170px;
   white-space: nowrap;
   overflow: hidden;
@@ -305,7 +316,7 @@ const UserEmail = styled.div`
 
 const DropdownDivider = styled.div`
   height: 1px;
-  background: #eaeaea;
+  background: ${({ theme }) => theme.colors.divider};
   margin: 0.5rem 0;
 `;
 
@@ -315,7 +326,7 @@ const SignOutButton = styled.button`
   padding: 0.5rem 0;
   background: transparent;
   border: none;
-  color: #e53935;
+  color: ${({ theme }) => theme.colors.error};
   font-size: 0.9rem;
   cursor: pointer;
   
@@ -328,8 +339,8 @@ const SignOutButton = styled.button`
 const SignInButton = styled.button`
   padding: 0.35rem 0.7rem;
   background: transparent;
-  color: #4285f4;
-  border: 1px solid #4285f4;
+  color: ${({ theme }) => theme.colors.primary};
+  border: 1px solid ${({ theme }) => theme.colors.primary};
   border-radius: 4px;
   font-size: 0.85rem;
   cursor: pointer;
@@ -339,7 +350,7 @@ const SignInButton = styled.button`
   gap: 0.4rem;
   
   &:hover {
-    background: rgba(66, 133, 244, 0.05);
+    background: ${({ theme }) => theme.colors.primary}11;
   }
   
   @media (max-width: 600px) {
@@ -350,11 +361,8 @@ const SignInButton = styled.button`
 
 // Component
 const Header: React.FC = () => {
-  // Theme state in localStorage for persistence
-  const [dark, setDark] = React.useState(() => {
-    return document.body.classList.contains('dark-theme') ||
-      window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  // Theme state from ThemeProvider
+  const { isDarkTheme, toggleTheme } = useTheme();
   
   // Search state
   const [searchText, setSearchText] = useState('');
@@ -489,17 +497,6 @@ const Header: React.FC = () => {
   };
 
   React.useEffect(() => {
-    if (dark) {
-      document.body.classList.add('dark-theme');
-    } else {
-      document.body.classList.remove('dark-theme');
-    }
-  }, [dark]);
-
-  const toggleTheme = () => setDark((d) => !d);
-
-  // Add a new useEffect hook to handle clicks outside the search container
-  React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const searchContainer = document.querySelector('.search-container');
       if (searchContainer && !searchContainer.contains(event.target as Node)) {
@@ -582,26 +579,8 @@ const Header: React.FC = () => {
     <span>Sign in</span>
   </SignInButton>
 )}
-          <ThemeToggle onClick={toggleTheme} dark={dark} title={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
-            {dark ? (
-              <svg key="moon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 12.79A9 9 0 0111.21 3a7 7 0 100 14 9 9 0 009.79-4.21z" fill="#FFD600"/>
-              </svg>
-            ) : (
-              <svg key="sun" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="5" fill="#FFD600"/>
-                <g stroke="#FFD600" strokeWidth="2">
-                  <line x1="12" y1="1" x2="12" y2="4"/>
-                  <line x1="12" y1="20" x2="12" y2="23"/>
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                  <line x1="1" y1="12" x2="4" y2="12"/>
-                  <line x1="20" y1="12" x2="23" y2="12"/>
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                </g>
-              </svg>
-            )}
+          <ThemeToggle onClick={toggleTheme} isDark={isDarkTheme}>
+            {isDarkTheme ? <FiSun /> : <FiMoon />}
           </ThemeToggle>
         </HeaderActions>
       </HeaderContent>

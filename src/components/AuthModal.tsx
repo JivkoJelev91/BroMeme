@@ -40,26 +40,31 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <ModalOverlay onClick={onClose}>
-      <ModalContent onClick={e => e.stopPropagation()}>
+      <ModalContainer onClick={e => e.stopPropagation()}>
         <CloseButton onClick={onClose}>×</CloseButton>
         
-        <Title>Sign in to BroMeme</Title>
-        <Subtitle>Create and share memes with the community</Subtitle>
+        <ModalHeader>
+          <ModalTitle>Sign in to BroMeme</ModalTitle>
+        </ModalHeader>
         
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        
-        <GoogleButton 
-          onClick={handleGoogleSignIn}
-          disabled={loading}
-        >
-          <FaGoogle />
-          <span>{loading ? 'Connecting...' : 'Continue with Google'}</span>
-        </GoogleButton>
-        
-        <TermsText>
-          By continuing, you agree to our Terms of Service and Privacy Policy
-        </TermsText>
-      </ModalContent>
+        <ModalContent>
+          <Subtitle>Create and share memes with the community</Subtitle>
+          
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          
+          <GoogleButton 
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+          >
+            <FaGoogle />
+            <span>{loading ? 'Connecting...' : 'Continue with Google'}</span>
+          </GoogleButton>
+          
+          <TermsText>
+            By continuing, you agree to our Terms of Service and Privacy Policy
+          </TermsText>
+        </ModalContent>
+      </ModalContainer>
     </ModalOverlay>
   );
 };
@@ -71,21 +76,114 @@ const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: ${({ theme }) => theme.colors.modalOverlay};
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 1rem;
+`;
+
+const ModalContainer = styled.div`
+  background: ${({ theme }) => theme.colors.cardBackground};
+  border-radius: 8px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px ${({ theme }) => theme.colors.shadow};
+  overflow: hidden;
+  position: relative;
+`;
+
+const ModalHeader = styled.div`
+  padding: 1.25rem;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.divider};
+`;
+
+const ModalTitle = styled.h3`
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text.primary};
 `;
 
 const ModalContent = styled.div`
-  background: white;
-  border-radius: 8px;
-  padding: 2rem;
+  padding: 1.5rem;
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 1.25rem;
+`;
+
+const FormLabel = styled.label`
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.text.primary};
+`;
+
+const FormInput = styled.input`
   width: 100%;
-  max-width: 400px;
-  position: relative;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid ${({ theme }) => theme.colors.border.medium};
+  border-radius: 4px;
+  background: ${({ theme }) => theme.colors.input.background};
+  color: ${({ theme }) => theme.colors.text.primary};
+  
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}33;
+  }
+  
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.input.placeholder};
+  }
+`;
+
+const SubmitButton = styled.button`
+  background: ${({ theme }) => theme.colors.primary};
+  color: white;
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary}dd;
+  }
+  
+  &:disabled {
+    background: ${({ theme }) => theme.colors.border.medium};
+    cursor: not-allowed;
+  }
+`;
+
+const ToggleAuthModeText = styled.p`
+  margin: 1.25rem 0 0;
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.colors.text.secondary};
+  text-align: center;
+`;
+
+const ToggleAuthModeButton = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 0.25rem;
+  
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const CloseButton = styled.button`
@@ -94,34 +192,29 @@ const CloseButton = styled.button`
   right: 1rem;
   background: none;
   border: none;
+  color: ${({ theme }) => theme.colors.text.tertiary};
   font-size: 1.5rem;
+  line-height: 1;
   cursor: pointer;
-  color: #777;
   
   &:hover {
-    color: #333;
+    color: ${({ theme }) => theme.colors.text.primary};
   }
 `;
 
-const Title = styled.h2`
-  text-align: center;
-  margin-bottom: 0.5rem;
-  font-size: 1.5rem;
+const ErrorMessage = styled.div`
+  color: ${({ theme }) => theme.colors.error};
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: ${({ theme }) => theme.colors.error}15;
+  border-radius: 4px;
 `;
 
 const Subtitle = styled.p`
   text-align: center;
   color: #666;
   margin-bottom: 1.5rem;
-`;
-
-const ErrorMessage = styled.div`
-  background-color: #fdeded;
-  color: #d32f2f;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
 `;
 
 const GoogleButton = styled.button`

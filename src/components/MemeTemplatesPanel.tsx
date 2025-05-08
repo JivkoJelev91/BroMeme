@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import styled, { keyframes, css } from 'styled-components';
+import styled from 'styled-components';
 import { useAppDispatch, useAppSelector } from 'store';
 import { setMemeImage, setMemeImageName, setActiveTab } from '../redux';
 import { supabase } from '../supabase/supabaseConfig';
-import { FiHeart, FiCheckCircle, FiCheck } from 'react-icons/fi';
+import { FiHeart } from 'react-icons/fi';
 import { FaHeart } from 'react-icons/fa';
 
 interface MemeTemplate {
@@ -235,12 +235,11 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
       
       {isLoading ? (
         <LoadingContainer>
-          <LoadingSpinner />
+          <Spinner />
           <div>Loading templates...</div>
         </LoadingContainer>
       ) : error ? (
         <ErrorContainer>
-          <ErrorIcon>⚠️</ErrorIcon>
           <div>Error loading templates: {error}</div>
           <RefreshButton onClick={fetchTemplates}>Try Again</RefreshButton>
         </ErrorContainer>
@@ -309,7 +308,7 @@ const HeaderSection = styled.div`
 const CategoryTitle = styled.h2`
   margin: 0;
   font-size: 1.5rem;
-  color: #333;
+  color: ${({ theme }) => theme.colors.text.primary};
 `;
 
 const TemplatesGrid = styled.div`
@@ -336,17 +335,17 @@ const TemplatesGrid = styled.div`
   }
   
   &::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: ${({ theme }) => theme.colors.divider};
     border-radius: 10px;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: #ccc;
+    background: ${({ theme }) => theme.colors.border.medium};
     border-radius: 10px;
   }
   
   &::-webkit-scrollbar-thumb:hover {
-    background: #bbb;
+    background: ${({ theme }) => theme.colors.text.tertiary};
   }
 `;
 
@@ -354,18 +353,17 @@ const TemplateCard = styled.div`
   cursor: pointer;
   border-radius: 6px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px ${({ theme }) => theme.colors.shadow};
   transition: transform 0.2s, box-shadow 0.2s;
-  background: white;
-  position: relative; /* Add this to make FavoriteButton position relative to the card */
+  background: ${({ theme }) => theme.colors.cardBackground};
+  position: relative;
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 8px ${({ theme }) => theme.colors.shadow};
   }
 `;
 
-// Update TemplateImage to fit within the container
 const TemplateImage = styled.img`
   width: 100%;
   height: 140px;
@@ -374,19 +372,13 @@ const TemplateImage = styled.img`
 `;
 
 const TemplateName = styled.div`
-  font-size: 0.85rem;
   padding: 0.75rem;
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.colors.text.primary};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-top: 1px solid #f0f0f0;
-`;
-
-const HeartAnimation = keyframes`
-  0% { transform: scale(1); }
-  25% { transform: scale(1.2); }
-  50% { transform: scale(0.95); }
-  100% { transform: scale(1); }
+  border-top: 1px solid ${({ theme }) => theme.colors.divider};
 `;
 
 const FavoriteButton = styled.button<{ isFavorite?: boolean }>`
@@ -403,29 +395,33 @@ const FavoriteButton = styled.button<{ isFavorite?: boolean }>`
   justify-content: center;
   cursor: pointer;
   font-size: 1.1rem;
-  color: ${props => props.isFavorite ? 'red' : '#777'};
+  color: ${props => props.isFavorite ? 
+    props.theme.colors.favorite : props.theme.colors.text.tertiary};
   z-index: 2;
-  transition: background 0.2s;
+  transition: all 0.2s;
   
   svg {
-    animation: ${props => props.isFavorite ? css`${HeartAnimation} 0.3s ease forwards` : 'none'};
+    stroke-width: ${props => props.isFavorite ? 2.5 : 2};
+    transition: all 0.2s;
   }
   
   &:hover {
     background: rgba(255, 255, 255, 0.95);
-    color: ${props => props.isFavorite ? '#e00' : '#ff4b4b'};
+    color: ${props => props.isFavorite ? 
+      props.theme.colors.error : props.theme.colors.favorite};
+    transform: scale(1.05);
   }
 `;
 
 const NoResults = styled.div`
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 2rem;
-  color: #888;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
+  color: ${({ theme }) => theme.colors.text.secondary};
+  padding: 2rem;
 `;
 
 const LoadingContainer = styled.div`
@@ -433,18 +429,17 @@ const LoadingContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 200px;
-  color: #666;
-  gap: 1rem;
+  flex: 1;
 `;
 
-const LoadingSpinner = styled.div`
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #3498db;
+const Spinner = styled.div`
+  border: 3px solid ${({ theme }) => theme.colors.divider};
+  border-top: 3px solid ${({ theme }) => theme.colors.primary};
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
   
   @keyframes spin {
     0% { transform: rotate(0deg); }
@@ -453,44 +448,37 @@ const LoadingSpinner = styled.div`
 `;
 
 const ErrorContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  color: #d32f2f;
+  color: ${({ theme }) => theme.colors.error};
   text-align: center;
-  gap: 1rem;
-`;
-
-const ErrorIcon = styled.div`
-  font-size: 2rem;
+  padding: 2rem;
 `;
 
 const RefreshButton = styled.button`
-  background: #f0f0f0;
+  background: ${({ theme }) => theme.colors.secondary};
   border: none;
   border-radius: 4px;
   padding: 0.5rem 1rem;
   cursor: pointer;
   font-size: 0.9rem;
+  color: ${({ theme }) => theme.colors.text.primary};
   
   &:hover {
-    background: #e0e0e0;
+    background: ${({ theme }) => theme.colors.divider};
   }
 `;
 
 const DebugButton = styled.button`
-  background: #f0f0f0;
-  border: 1px solid #ddd;
+  background: ${({ theme }) => theme.colors.secondary};
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
   border-radius: 4px;
   padding: 0.5rem 1rem;
   cursor: pointer;
   font-size: 0.9rem;
   margin-top: 1rem;
+  color: ${({ theme }) => theme.colors.text.primary};
   
   &:hover {
-    background: #e0e0e0;
+    background: ${({ theme }) => theme.colors.divider};
   }
 `;
 

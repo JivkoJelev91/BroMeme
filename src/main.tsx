@@ -6,6 +6,8 @@ import './index.css'
 import App from 'src/App'
 import { BrowserRouter } from 'react-router-dom'
 import React from 'react'
+import { ThemeProvider } from './ThemeProvider'
+import { GlobalStyles } from './GlobalStyles'
 
 // Create a component to handle the auth redirect
 function AuthHandler() {
@@ -43,10 +45,13 @@ function AuthHandler() {
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Provider store={store}>
+    <ThemeProvider>
       <BrowserRouter>
+      <GlobalStyles />
         <AuthHandler />
         <App />
       </BrowserRouter>
+      </ThemeProvider>
     </Provider>
   </React.StrictMode>,
 );

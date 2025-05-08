@@ -9,11 +9,11 @@ import { setUser } from './redux/slices/authSlice'
 
 // Styled components
 const AppContainer = styled.div`
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  background: #f9f9f9;
-  font-family: Arial, sans-serif;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text.primary};
 `;
 
 const Content = styled.main`
@@ -21,31 +21,34 @@ const Content = styled.main`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.75rem;
-  gap: 0.75rem;
+  padding: 1rem;
+  gap: 1rem;
+  
+  @media (max-width: 600px) {
+    padding: 0.5rem;
+  }
 `;
 
 const EditorContainer = styled.div`
   display: flex;
+  flex-direction: column;
   max-width: 1000px;
   width: 100%;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  margin-bottom: 0.75rem;
-    /* Default layout for desktop: row direction */
-  flex-direction: row;
+  gap: 1rem;
   
-  /* Switch to column layout only on mobile */
-  @media (max-width: 768px) {
-    flex-direction: column;
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: flex-start;
   }
 `;
 
-const HotMemesContainer = styled.div`
+const TemplatesContainer = styled.div`
   max-width: 1000px;
   width: 100%;
+  background: ${({ theme }) => theme.colors.cardBackground};
+  border-radius: 8px;
+  box-shadow: 0 2px 4px ${({ theme }) => theme.colors.shadow};
+  overflow: hidden;
 `;
 
 function App() {
@@ -162,9 +165,9 @@ const renderMainContent = () => {
         
         {/* Only show hot memes when in editor mode */}
         {isEditorTab && (
-          <HotMemesContainer>
+          <TemplatesContainer>
             <HotMemes />
-          </HotMemesContainer>
+          </TemplatesContainer>
         )}
       </Content>
       

@@ -109,26 +109,33 @@ const TextPanel: React.FC<TextPanelProps> = ({ handleImageUpload }) => {
 
 // Styled components
 const InputGroup = styled.div`
-  margin-bottom: 1rem;
 `;
 
 const InputWrapper = styled.div`
   position: relative;
-  margin-bottom: 1rem;
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: 0.75rem 2.5rem 0.75rem 0.75rem;
-  border: 1px solid #e0e0e0;
   border-radius: 4px;
   font-size: 0.95rem;
   box-sizing: border-box;
+  margin-bottom: 1rem;
+
+  border: 1px solid ${({ theme }) => theme.colors.border.medium};
+  background: ${({ theme }) => theme.colors.input.background};
+  color: ${({ theme }) => theme.colors.text.primary};
+  
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 // Same style as in Draw and Rotate panels
 const ResetButton = styled.button`
-   padding: 8px 16px;
+  padding: 8px 16px;
   background-color: ${props => props.disabled ? '#f0f0f0' : '#f0f2f5'};
   border: none;
   border-radius: 4px;
