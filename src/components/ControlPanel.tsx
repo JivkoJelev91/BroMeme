@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { useAppSelector, useAppDispatch, RootState } from '../redux/store';
 import { setActiveTab } from '../redux/slices/memeSlice';
-import { TextPanel, EffectsPanel, DrawPanel, RotatePanel } from 'components';
+import { TextPanel, EffectsPanel, DrawPanel } from 'components';
 import UploadPanel from './panels/UploadPanel';
 
 // Component
@@ -35,8 +35,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         return <EffectsPanel />;
       case "draw":
         return <DrawPanel />;
-      case "rotate":
-        return <RotatePanel />;
         case "upload":
         return <UploadPanel />;
       default:
@@ -68,13 +66,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           >
             <TabIcon>✏️</TabIcon>
             <TabLabel>Draw</TabLabel>
-          </ControlTab>
-          <ControlTab 
-            $active={activeTab === 'rotate'} 
-            onClick={() => dispatch(setActiveTab('rotate'))}
-          >
-            <TabIcon>↻</TabIcon>
-            <TabLabel>Rotate</TabLabel>
           </ControlTab>
           {isAuthenticated && (
             <ControlTab 

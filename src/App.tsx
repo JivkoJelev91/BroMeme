@@ -91,7 +91,7 @@ function App() {
   }, [dispatch]);
 
   // Check if current tab is one of the editor tabs
-  const isEditorTab = ['text', 'effects', 'draw', 'rotate', 'upload'].includes(activeTab)
+  const isEditorTab = ['text', 'effects', 'draw', 'upload'].includes(activeTab)
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -130,7 +130,7 @@ function App() {
 // Then update the renderMainContent function to include template categories
 const renderMainContent = () => {
   // These are your editor tabs
-  if (['text', 'effects', 'draw', 'rotate', 'upload'].includes(activeTab)) {
+  if (['text', 'effects', 'draw', 'upload'].includes(activeTab)) {
     return (
       <EditorContainer>
         <MemePreview memeRef={memeRef} />

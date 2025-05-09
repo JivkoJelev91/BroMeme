@@ -39,7 +39,6 @@ This project was built in a flow state with the help of multiple AI tools — wh
   - Add custom text to memes
   - Draw on images
   - Apply effects
-  - Rotate images
 - 📤 Upload your image  
 - 📦 Download as PNG  
 - 🔥 Trending & categorized meme templates  

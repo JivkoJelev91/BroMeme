@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+ 
 import React, { RefObject, useRef, useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { addStroke } from '../redux/slices/memeSlice';
@@ -190,7 +190,6 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                 alt="Meme" 
                 $blur={blur} 
                 $grayscale={grayscale}
-                $rotation={imageRotationAngle}
                 onLoad={handleImageLoad}
               />
               <DrawingCanvas 
@@ -199,7 +198,6 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                 onMouseMove={draw}
                 onMouseUp={finishDrawing}
                 onMouseLeave={finishDrawing}
-                $rotation={imageRotationAngle}
                 $isDrawPanelActive={activeTab === 'draw'}
               />
               {topText && (
@@ -207,7 +205,6 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                   position="top"
                   bold={bold}
                   shadow={shadow}
-                  rotation={rotationAngle}
                   fontSize={topFontSize}
                   fontFamily={topFontFamily}
                   textAlign={topTextAlign}
@@ -300,13 +297,11 @@ const MemeCard = styled.div`
   border: none;
 `;
 
-const MemeImage = styled.img<{ $blur: boolean; $grayscale: boolean; $rotation: number }>`
+const MemeImage = styled.img<{ $blur: boolean; $grayscale: boolean; }>`
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transform: rotate(${props => props.$rotation}deg);
-  transition: transform 0.3s ease;
   
   ${({ $blur }) => $blur && css`filter: blur(3px);`}
   ${({ $grayscale, $blur }) => $grayscale && css`
@@ -318,7 +313,6 @@ const MemeText = styled.div<{
   bold: boolean; 
   shadow: boolean; 
   position: 'top' | 'bottom'; 
-  rotation: number;
   fontSize: number;
   fontFamily: string;
   textAlign: string;
@@ -332,8 +326,6 @@ const MemeText = styled.div<{
   padding: 0 10px;
   color: #fff;
   pointer-events: none;
-  transform: rotate(${props => props.rotation}deg);
-  transition: transform 0.3s ease, top 0.3s ease, bottom 0.3s ease;
   ${({ bold }) => bold && css`font-weight: bold;`}
   ${({ shadow }) => shadow ? css`
     text-shadow: 
@@ -353,7 +345,6 @@ const MemeText = styled.div<{
 `;
 
 const DrawingCanvas = styled.canvas<{
-  $rotation: number;
   $isDrawPanelActive: boolean;
 }>`
   position: absolute;
@@ -361,7 +352,6 @@ const DrawingCanvas = styled.canvas<{
   left: 0;
   width: 100%;
   height: 100%;
-  transform: ${props => `rotate(${props.$rotation}deg)`};
   pointer-events: ${props => props.$isDrawPanelActive ? 'auto' : 'none'};
   z-index: 10;
 `;

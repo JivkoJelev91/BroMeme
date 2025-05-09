@@ -16,9 +16,6 @@ interface MemeState {
   blur: boolean;
   grayscale: boolean;
   activeTab: string;
-  rotationAngle: number;
-  imageRotationAngle: number;
-  rotateTextWithImage: boolean;
   drawingColor: string;
   brushSize: number;
   strokes: DrawingStroke[];
@@ -45,9 +42,6 @@ const initialState: MemeState = {
   blur: false,
   grayscale: false,
   activeTab: 'text',
-  rotationAngle: 0,
-  imageRotationAngle: 0,
-  rotateTextWithImage: true,
   drawingColor: '#ff0000', // Default red
   brushSize: 5,
   strokes: [],
@@ -112,36 +106,6 @@ export const memeSlice = createSlice({
         state.bottomSpacing = state.bottomSpacing === 24 ? 48 : 24;
       }
     },
-    setRotationAngle: (state, action: PayloadAction<number>) => {
-      state.rotationAngle = action.payload;
-    },
-    rotateClockwise: (state) => {
-      state.rotationAngle = (state.rotationAngle + 90) % 360;
-    },
-    rotateCounterClockwise: (state) => {
-      state.rotationAngle = (state.rotationAngle - 90 + 360) % 360;
-    },
-        // Update these reducers in your memeSlice.ts
-    rotateImageClockwise: (state) => {
-      state.imageRotationAngle = (state.imageRotationAngle + 90) % 360;
-      // No text rotation, leave rotationAngle unchanged
-    },
-    rotateImageCounterClockwise: (state) => {
-      state.imageRotationAngle = (state.imageRotationAngle - 90 + 360) % 360;
-      // No text rotation, leave rotationAngle unchanged
-    },
-    setImageRotationAngle: (state, action: PayloadAction<number>) => {
-      state.imageRotationAngle = action.payload;
-      // No text rotation, leave rotationAngle unchanged
-    },
-    toggleRotateTextWithImage: (state) => {
-      state.rotateTextWithImage = !state.rotateTextWithImage;
-      if (state.rotateTextWithImage) {
-        state.rotationAngle = state.imageRotationAngle;
-      } else {
-        state.rotationAngle = 0; // Reset text rotation to 0 when unchecked
-      }
-    },
     setDrawingColor: (state, action: PayloadAction<string>) => {
       state.drawingColor = action.payload;
     },
@@ -195,13 +159,6 @@ export const {
   toggleShadow,
   toggleBlur,
   toggleGrayscale,
-  setRotationAngle,
-  rotateClockwise,
-  rotateCounterClockwise,
-  setImageRotationAngle,
-  rotateImageClockwise,
-  rotateImageCounterClockwise,
-  toggleRotateTextWithImage,
   setDrawingColor,
   setBrushSize,
   addStroke,

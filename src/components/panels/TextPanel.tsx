@@ -133,7 +133,7 @@ const Input = styled.input`
   }
 `;
 
-// Same style as in Draw and Rotate panels
+// Same style as in Draw
 const ResetButton = styled.button`
   padding: 8px 16px;
   background-color: ${props => props.disabled ? '#f0f0f0' : '#f0f2f5'};

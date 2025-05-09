@@ -122,22 +122,28 @@ const UploadPanel: React.FC = () => {
   return (
     <PanelContainer>
       {success ? (
-        <SuccessContainer>
-          <SuccessIcon>✅</SuccessIcon>
-          <SuccessMessage>Template uploaded successfully!</SuccessMessage>
-          <SuccessText>
-            Your template has been added to the selected categories.
-            <br/>
-            <small>It may take a moment to appear in the gallery.</small>
-          </SuccessText>
+        <UploadForm>
+          <FormGroup>
+            <SuccessDropArea>
+              <SuccessCard>
+                <SuccessIcon>
+                  🚀
+                  <RocketTrail />
+                </SuccessIcon>
+                <SuccessMessage>Template added to gallery!</SuccessMessage>
+              </SuccessCard>
+            </SuccessDropArea>
+          </FormGroup>
           
-          <ButtonGroup>
-            <Button onClick={resetForm}>Upload Another</Button>
-            <ViewButton onClick={viewTemplate}>
+          <ButtonWrapper>
+            <Button onClick={resetForm}>
+              Upload Another Template
+            </Button>
+            <ViewGalleryButton onClick={viewTemplate}>
               View in Gallery
-            </ViewButton>
-          </ButtonGroup>
-        </SuccessContainer>
+            </ViewGalleryButton>
+          </ButtonWrapper>
+        </UploadForm>
       ) : (
         <UploadForm onSubmit={handleSubmit}>
           <FormGroup>
@@ -348,44 +354,98 @@ const ErrorMessage = styled.div`
   border-radius: 4px;
 `;
 
-const SuccessContainer = styled.div`
+const SuccessDropArea = styled.div`
+  border-radius: 4px;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 1rem;
+`;
+
+const SuccessCard = styled.div`
+  width: 100%;
+  padding: 2rem;
+  background: linear-gradient(145deg, 
+    ${({ theme }) => theme.colors.success || '#2ecc71'}33, 
+    ${({ theme }) => theme.colors.success || '#2ecc71'}55);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(46, 204, 113, 0.2);
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  transition: transform 0.3s ease;
+  margin: -1rem 0;
+  
+  &:hover {
+    transform: rotateY(5deg) rotateX(5deg);
+  }
 `;
 
 const SuccessIcon = styled.div`
   font-size: 3rem;
   margin-bottom: 1rem;
+  color: #46c15a;
+  position: relative;
+`;
+
+const RocketTrail = styled.div`
+  position: absolute;
+  bottom: -35px;
+  left: 42%;
+  transform: translateX(-150%);
+  rotate: 45deg;
+  width: 20px;
+  height: 30px;
+  
+  &:before, &:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 8px;
+    height: 15px;
+    border-radius: 50%;
+    background: linear-gradient(to bottom, #ff9500, #ff5e3a);
+    animation: flame 0.6s ease-out infinite alternate;
+  }
+  
+  &:before {
+    left: 0;
+    animation-delay: 0.2s;
+  }
+  
+  &:after {
+    right: 0;
+  }
+  
+  @keyframes flame {
+    0% {
+      height: 15px;
+      opacity: 0.8;
+    }
+    100% {
+      height: 30px;
+      opacity: 0.5;
+    }
+  }
 `;
 
 const SuccessMessage = styled.h3`
   font-size: 1.2rem;
   margin: 0 0 0.5rem 0;
-  color: ${({ theme }) => theme.colors.text.primary};
 `;
 
 const SuccessText = styled.p`
   color: ${({ theme }) => theme.colors.text.secondary};
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
 `;
 
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 0.75rem;
-`;
-
-const ViewButton = styled.button`
+const ViewGalleryButton = styled(Button)`
   background: ${({ theme }) => theme.colors.cardBackground};
   color: ${({ theme }) => theme.colors.primary};
   border: 1px solid ${({ theme }) => theme.colors.primary};
-  border-radius: 4px;
-  padding: 0.75rem;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s;
+  margin-top: 1rem;
   
   &:hover {
     background: ${({ theme }) => theme.colors.primary}11;

@@ -12,7 +12,7 @@ const TabBar: React.FC = () => {
       <TabsGroup>
         {/* Editor tab */}
         <Tab 
-          $active={activeTab === 'text' || activeTab === 'effects' || activeTab === 'draw' || activeTab === 'rotate'}
+          $active={activeTab === 'text' || activeTab === 'effects' || activeTab === 'draw'}
           onClick={() => dispatch(setActiveTab('text'))}
           data-tab="text"
         >
