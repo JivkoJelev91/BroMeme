@@ -9,6 +9,7 @@ interface DrawingStroke {
 interface MemeState {
   memeImage: string | null;
   memeImageName: string;
+  useResponsiveFont: boolean;
   topText: string;
   bottomText: string;
   bold: boolean;
@@ -27,6 +28,8 @@ interface MemeState {
   bottomFontFamily: string;
   topTextAlign: string;
   bottomTextAlign: string;
+  topTextPosition: { x: number, y: number };
+  bottomTextPosition: { x: number, y: number };
 }
 
 // Default initial meme image
@@ -35,6 +38,7 @@ const defaultMemeImage = 'https://i.imgflip.com/24y43o.jpg';
 const initialState: MemeState = {
   memeImage: defaultMemeImage,
   memeImageName: 'Change My Mind',
+  useResponsiveFont: true,
   topText: '',
   bottomText: '',
   bold: false,
@@ -53,6 +57,8 @@ const initialState: MemeState = {
   bottomFontFamily: 'Impact',
   topTextAlign: 'center',
   bottomTextAlign: 'center',
+  topTextPosition: { x: 0, y: -145 },
+  bottomTextPosition: { x: 0, y: 145 },
 };
 
 export const memeSlice = createSlice({
@@ -65,6 +71,9 @@ export const memeSlice = createSlice({
     setMemeImageName: (state, action: PayloadAction<string>) => {
       state.memeImageName = action.payload;
     },
+    toggleResponsiveFont: (state) => {
+  state.useResponsiveFont = !state.useResponsiveFont;
+},
     setTopText: (state, action: PayloadAction<string>) => {
       state.topText = action.payload;
     },
@@ -142,6 +151,14 @@ export const memeSlice = createSlice({
     setBottomTextAlign: (state, action: PayloadAction<string>) => {
       state.bottomTextAlign = action.payload;
     },
+    updateTextPosition: (state, action: PayloadAction<{ position: 'top' | 'bottom', x: number, y: number }>) => {
+      const { position, x, y } = action.payload;
+      if (position === 'top') {
+        state.topTextPosition = { x, y };
+      } else {
+        state.bottomTextPosition = { x, y };
+      }
+    },
   },
 });
 
@@ -172,6 +189,8 @@ export const {
   setBottomFontFamily,
   setTopTextAlign,
   setBottomTextAlign,
+  updateTextPosition,
+  toggleResponsiveFont
 } = memeSlice.actions;
 
 export default memeSlice.reducer;

@@ -10,7 +10,8 @@ import {
   setTopFontFamily,
   setBottomFontFamily,
   setTopTextAlign,
-  setBottomTextAlign
+  setBottomTextAlign,
+  updateTextPosition
 } from '../../redux';
 import { RootState } from '../../redux/store';
 import { SettingsIcon, SettingsMenu } from '../StyledComponents';
@@ -46,6 +47,20 @@ const TextPanel: React.FC<TextPanelProps> = ({ handleImageUpload }) => {
     dispatch(setBottomFontFamily('Impact'));
     dispatch(setTopTextAlign('center'));
     dispatch(setBottomTextAlign('center'));
+    dispatch(
+      updateTextPosition({
+        position: "top",
+        x: 0,
+        y: -145,
+      })
+    );
+    dispatch(
+      updateTextPosition({
+        position: "bottom",
+        x: 0,
+        y: 145,
+      })
+    );
   };
 
   return (
@@ -59,6 +74,7 @@ const TextPanel: React.FC<TextPanelProps> = ({ handleImageUpload }) => {
             placeholder="Text #1"
             value={topText}
             onChange={e => dispatch(setTopText(e.target.value))}
+            maxLength={60}
           />
           <SettingsIcon onClick={() => setOpenMenu(openMenu === 'top' ? null : 'top')} aria-label="Text 1 settings">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 13.5A3.5 3.5 0 1 0 10 6.5a3.5 3.5 0 0 0 0 7zm7-3.5c0-.47-.04-.93-.1-1.38l1.6-1.25a.5.5 0 0 0 .12-.64l-1.52-2.63a.5.5 0 0 0-.6-.23l-1.88.76a7.03 7.03 0 0 0-1.2-.7l-.28-2A.5.5 0 0 0 12.5 2h-3a.5.5 0 0 0-.5.42l-.28 2c-.42.18-.82.4-1.2.7l-1.88-.76a.5.5 0 0 0-.6.23L2.52 7.22a.5.5 0 0 0 .12.64l1.6 1.25c-.06.45-.1.91-.1 1.38s.04.93.1 1.38l-1.6 1.25a.5.5 0 0 0-.12.64l1.52 2.63a.5.5 0 0 0 .6.23l1.88-.76c.38.3.78.52 1.2.7l.28 2a.5.5 0 0 0 .5.42h3a.5.5 0 0 0 .5-.42l.28-2c.42-.18.82-.4 1.2-.7l1.88.76a.5.5 0 0 0 .6-.23l1.52-2.63a.5.5 0 0 0-.12-.64l-1.6-1.25c.06-.45.1-.91.1-1.38z" stroke="currentColor" strokeWidth="1.2" fill="none"/></svg>
@@ -82,6 +98,7 @@ const TextPanel: React.FC<TextPanelProps> = ({ handleImageUpload }) => {
             placeholder="Text #2"
             value={bottomText}
             onChange={e => dispatch(setBottomText(e.target.value))}
+            maxLength={60}
           />
           <SettingsIcon onClick={() => setOpenMenu(openMenu === 'bottom' ? null : 'bottom')} aria-label="Text 2 settings">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 13.5A3.5 3.5 0 1 0 10 6.5a3.5 3.5 0 0 0 0 7zm7-3.5c0-.47-.04-.93-.1-1.38l1.6-1.25a.5.5 0 0 0 .12-.64l-1.52-2.63a.5.5 0 0 0-.6-.23l-1.88.76a7.03 7.03 0 0 0-1.2-.7l-.28-2A.5.5 0 0 0 12.5 2h-3a.5.5 0 0 0-.5.42l-.28 2c-.42.18-.82.4-1.2.7l-1.88-.76a.5.5 0 0 0-.6.23L2.52 7.22a.5.5 0 0 0 .12.64l1.6 1.25c-.06.45-.1.91-.1 1.38s.04.93.1 1.38l-1.6 1.25a.5.5 0 0 0-.12.64l1.52 2.63a.5.5 0 0 0 .6.23l1.88-.76c.38.3.78.52 1.2.7l.28 2a.5.5 0 0 0 .5.42h3a.5.5 0 0 0 .5-.42l.28-2c.42-.18.82-.4 1.2-.7l1.88.76a.5.5 0 0 0 .6-.23l1.52-2.63a.5.5 0 0 0-.12-.64l-1.6-1.25c.06-.45.1-.91.1-1.38z" stroke="currentColor" strokeWidth="1.2" fill="none"/></svg>

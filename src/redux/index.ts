@@ -31,6 +31,7 @@ export {
   toggleBold,
   toggleGrayscale,
   clearDrawing,
+  updateTextPosition
 } from './slices/memeSlice';
 
 // Store

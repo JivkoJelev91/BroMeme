@@ -150,7 +150,7 @@ const UploadPanel: React.FC = () => {
             <Label>Template Image</Label>
             <DropArea 
               onClick={() => fileInputRef.current?.click()}
-              hasPreview={!!selectedFile}
+              $hasPreview={!!selectedFile}
             >
               {selectedFile ? (
                 <SelectedFileInfo>
@@ -246,23 +246,23 @@ const Label = styled.label`
   color: ${({ theme }) => theme.colors.text.secondary};
 `;
 
-const DropArea = styled.div<{ hasPreview: boolean }>`
-  border: 2px dashed ${props => props.hasPreview ? 
+const DropArea = styled.div<{ $hasPreview: boolean }>`
+  border: 2px dashed ${props => props.$hasPreview ? 
     props.theme.colors.primary : props.theme.colors.border.medium};
   border-radius: 4px;
-  padding: ${props => props.hasPreview ? '0' : '0.5rem'};
+  padding: ${props => props.$hasPreview ? '0' : '0.5rem'};
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  background: ${props => props.hasPreview ? 
+  background: ${props => props.$hasPreview ? 
     `${props.theme.colors.primary}11` : props.theme.colors.input.background};
   
   &:hover {
-    background: ${props => props.hasPreview ? 
+    background: ${props => props.$hasPreview ? 
       `${props.theme.colors.primary}22` : props.theme.colors.divider};
-    border-color: ${props => props.hasPreview ? 
+    border-color: ${props => props.$hasPreview ? 
       props.theme.colors.primary : props.theme.colors.border.medium};
   }
 `;
@@ -367,9 +367,7 @@ const SuccessDropArea = styled.div`
 const SuccessCard = styled.div`
   width: 100%;
   padding: 2rem;
-  background: linear-gradient(145deg, 
-    ${({ theme }) => theme.colors.success || '#2ecc71'}33, 
-    ${({ theme }) => theme.colors.success || '#2ecc71'}55);
+  background: linear-gradient(145deg, #2ecc7133,#2ecc7155);
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(46, 204, 113, 0.2);
   transform-style: preserve-3d;
@@ -433,12 +431,6 @@ const RocketTrail = styled.div`
 const SuccessMessage = styled.h3`
   font-size: 1.2rem;
   margin: 0 0 0.5rem 0;
-`;
-
-const SuccessText = styled.p`
-  color: ${({ theme }) => theme.colors.text.secondary};
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
 `;
 
 const ViewGalleryButton = styled(Button)`

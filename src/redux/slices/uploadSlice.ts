@@ -34,8 +34,11 @@ export const uploadMeme = createAsyncThunk(
         throw new Error('Failed to upload meme template');
       }
       return result;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'An unknown error occurred';
+      return rejectWithValue(errorMessage);
     }
   }
 );

@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { 
   useAppSelector, 
   useAppDispatch, 
-  toggleBold, 
   toggleBlur, 
   toggleGrayscale,
 } from '../../redux';
@@ -12,7 +11,6 @@ import { RootState } from '../../redux/store';
 // Component
 const EffectsPanel: React.FC = () => {
   const { 
-    bold, 
     blur, 
     grayscale, 
   } = useAppSelector((state: RootState) => state.meme);
@@ -20,13 +18,6 @@ const EffectsPanel: React.FC = () => {
 
   return (
     <EffectsContainer>
-      <CheckboxItem onClick={() => dispatch(toggleBold())}>
-        <StyledCheckbox checked={bold}>
-          {bold && '✓'}
-        </StyledCheckbox>
-        <EffectLabel>Bold</EffectLabel>
-      </CheckboxItem>
-      
       <CheckboxItem onClick={() => dispatch(toggleBlur())}>
         <StyledCheckbox checked={blur}>
           {blur && '✓'}
