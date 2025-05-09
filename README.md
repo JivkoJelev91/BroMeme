@@ -7,6 +7,8 @@
 > ⚠️ **DISCLAIMER**  
 > **This entire project was generated and built with the assistance of AI agents.**
 
+---
+
 ### 🧠 Powered by AI
 
 - 🎨 **Design**: Created by **ChatGPT (GPT-4-turbo)**
@@ -36,9 +38,10 @@ This project was built in a flow state with the help of multiple AI tools — wh
   - `popular`, `hot`, `classic`, `reaction`, `cat`, `dog`, `favorites`
 - 🔍 **Smart Search with Image Suggestions**: Search meme templates with keyword assistance and visual hints  
 - ✏️ Editor Tools:
-  - Add custom text to memes
-  - Draw on images
-  - Apply effects
+  - Add custom text to memes  
+  - **Drag and drop text elements** for precise positioning  
+  - Draw on images  
+  - Apply effects  
 - 📤 Upload your image  
 - 📦 Download as PNG  
 - 🔥 Trending & categorized meme templates  
@@ -52,7 +55,7 @@ This project was built in a flow state with the help of multiple AI tools — wh
 ## 🔧 Upcoming Features
 
 - 🤖 **AI Editor**: Automatically generate memes from prompts  
-- 🔐 **User Authentication**
+- 🔐 **User Authentication**  
 - 🌍 **Login with Other Social Media Platforms** (Facebook, Twitter, GitHub, etc.)
 
 ---
