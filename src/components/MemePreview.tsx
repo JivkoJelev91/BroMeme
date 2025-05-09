@@ -1,11 +1,12 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { RefObject, useRef, useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
-import { useAppSelector, useAppDispatch, addStroke } from 'store';
-import { RootState } from '../redux/store';
+import { addStroke } from '../redux/slices/memeSlice';
+import { RootState, useAppSelector, useAppDispatch, } from '../redux/store';
 
 // Component
 interface MemePreviewProps {
-  memeRef: RefObject<HTMLDivElement> | null;
+  memeRef: RefObject<HTMLDivElement>;
 }
 
 const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
@@ -187,9 +188,9 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                 ref={imgRef}
                 src={memeImage} 
                 alt="Meme" 
-                blur={blur} 
-                grayscale={grayscale}
-                rotation={imageRotationAngle}
+                $blur={blur} 
+                $grayscale={grayscale}
+                $rotation={imageRotationAngle}
                 onLoad={handleImageLoad}
               />
               <DrawingCanvas 
@@ -198,9 +199,8 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                 onMouseMove={draw}
                 onMouseUp={finishDrawing}
                 onMouseLeave={finishDrawing}
-                rotation={imageRotationAngle}
-                isDrawing={isDrawing}
-                isDrawPanelActive={activeTab === 'draw'}
+                $rotation={imageRotationAngle}
+                $isDrawPanelActive={activeTab === 'draw'}
               />
               {topText && (
                 <MemeText
@@ -300,17 +300,17 @@ const MemeCard = styled.div`
   border: none;
 `;
 
-const MemeImage = styled.img<{ blur: boolean; grayscale: boolean; rotation: number }>`
+const MemeImage = styled.img<{ $blur: boolean; $grayscale: boolean; $rotation: number }>`
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transform: rotate(${props => props.rotation}deg);
+  transform: rotate(${props => props.$rotation}deg);
   transition: transform 0.3s ease;
   
-  ${({ blur }) => blur && css`filter: blur(3px);`}
-  ${({ grayscale, blur }) => grayscale && css`
-    filter: ${blur ? 'grayscale(1) blur(3px)' : 'grayscale(1)'};
+  ${({ $blur }) => $blur && css`filter: blur(3px);`}
+  ${({ $grayscale, $blur }) => $grayscale && css`
+    filter: ${$blur ? 'grayscale(1) blur(3px)' : 'grayscale(1)'};
   `}
 `;
 
@@ -353,17 +353,16 @@ const MemeText = styled.div<{
 `;
 
 const DrawingCanvas = styled.canvas<{
-  rotation: number;
-  isDrawing: boolean;
-  isDrawPanelActive: boolean;
+  $rotation: number;
+  $isDrawPanelActive: boolean;
 }>`
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  transform: ${props => `rotate(${props.rotation}deg)`};
-  pointer-events: ${props => props.isDrawPanelActive ? 'auto' : 'none'};
+  transform: ${props => `rotate(${props.$rotation}deg)`};
+  pointer-events: ${props => props.$isDrawPanelActive ? 'auto' : 'none'};
   z-index: 10;
 `;
 

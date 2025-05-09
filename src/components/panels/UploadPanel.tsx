@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
-import { useAppSelector, useAppDispatch } from 'store';
+import { useAppSelector, useAppDispatch } from '../../redux/store';
 import { supabase } from '../../supabase/supabaseConfig';
-import { setActiveTab } from 'store';
+import { setActiveTab } from 'src/redux';
 
 const categories = [
   { id: 'popular', label: 'Popular' },
@@ -15,13 +15,11 @@ const categories = [
 
 const UploadPanel: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [uploadedTemplateId, setUploadedTemplateId] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAppSelector(state => state.auth);
@@ -34,9 +32,6 @@ const UploadPanel: React.FC = () => {
       
       // Create preview
       const reader = new FileReader();
-      reader.onload = () => {
-        setPreviewUrl(reader.result as string);
-      };
       reader.readAsDataURL(file);
     }
   };
@@ -87,7 +82,7 @@ const UploadPanel: React.FC = () => {
       if (!publicUrl) throw new Error('Failed to get public URL');
       
       // 3. Insert record into database
-      const { data: insertData, error: dbError } = await supabase
+      const { error: dbError } = await supabase
         .from('meme_templates')
         .insert({
           name,
@@ -99,14 +94,9 @@ const UploadPanel: React.FC = () => {
         
       if (dbError) throw new Error(dbError.message);
       
-      // Save the ID for navigation
-      if (insertData && insertData.length > 0) {
-        setUploadedTemplateId(insertData[0].id);
-      }
-      
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setIsUploading(false);
     }
@@ -114,12 +104,12 @@ const UploadPanel: React.FC = () => {
   
   const resetForm = () => {
     setSelectedFile(null);
-    setPreviewUrl(null);
+    // setPreviewUrl(null);
     setName('');
     setSelectedCategories([]);
     setSuccess(false);
     setError(null);
-    setUploadedTemplateId(null);
+    // setUploadedTemplateId(null);
   };
   
   const viewTemplate = () => {

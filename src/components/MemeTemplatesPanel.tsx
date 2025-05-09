@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useAppDispatch, useAppSelector } from 'store';
+import { useAppDispatch, useAppSelector } from '../redux/store';
 import { setMemeImage, setMemeImageName, setActiveTab } from '../redux';
 import { supabase } from '../supabase/supabaseConfig';
 import { FiHeart } from 'react-icons/fi';
@@ -103,9 +104,9 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
       if (user) {
         fetchUserFavorites();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching templates:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
       setTemplates([]);
     } finally {
       setIsLoading(false);
@@ -125,7 +126,7 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
       if (error) throw new Error(error.message);
       
       setFavoriteIds(data.map(item => item.template_id));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching user favorites:', err);
     }
   };
@@ -167,7 +168,7 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
         
         setFavoriteIds(prev => [...prev, templateId]);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error toggling favorite:', err);
     }
   };
@@ -267,7 +268,7 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
                 {user && (
                   <FavoriteButton 
                     onClick={(event) => toggleFavorite(template.id, event)}
-                    isFavorite={favoriteIds.includes(template.id)}
+                    $isFavorite={favoriteIds.includes(template.id)}
                   >
                     {favoriteIds.includes(template.id) ? <FaHeart /> : <FiHeart />}
                   </FavoriteButton>
@@ -401,7 +402,7 @@ const TemplateName = styled.div`
   border-top: 1px solid ${({ theme }) => theme.colors.divider};
 `;
 
-const FavoriteButton = styled.button<{ isFavorite?: boolean }>`
+const FavoriteButton = styled.button<{ $isFavorite?: boolean }>`
   position: absolute;
   top: 8px;
   right: 8px;
@@ -415,19 +416,19 @@ const FavoriteButton = styled.button<{ isFavorite?: boolean }>`
   justify-content: center;
   cursor: pointer;
   font-size: 1.1rem;
-  color: ${props => props.isFavorite ? 
+  color: ${props => props.$isFavorite ? 
     props.theme.colors.favorite : props.theme.colors.text.tertiary};
   z-index: 2;
   transition: all 0.2s;
   
   svg {
-    stroke-width: ${props => props.isFavorite ? 2.5 : 2};
+    stroke-width: ${props => props.$isFavorite ? 2.5 : 2};
     transition: all 0.2s;
   }
   
   &:hover {
     background: rgba(255, 255, 255, 0.95);
-    color: ${props => props.isFavorite ? 
+    color: ${props => props.$isFavorite ? 
       props.theme.colors.error : props.theme.colors.favorite};
     transform: scale(1.05);
   }
@@ -541,22 +542,6 @@ const LoginButton = styled.button`
   
   &:hover {
     background: ${({ theme }) => theme.colors.primaryHover};
-  }
-`;
-
-const SecondaryAction = styled.div`
-  margin-top: 1rem;
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.colors.text.secondary};
-`;
-
-const ActionLink = styled.span`
-  color: ${({ theme }) => theme.colors.primary};
-  cursor: pointer;
-  text-decoration: underline;
-  
-  &:hover {
-    color: ${({ theme }) => theme.colors.primaryHover};
   }
 `;
 

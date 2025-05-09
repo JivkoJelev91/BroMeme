@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useAppSelector, useAppDispatch, setDrawingColor, setBrushSize, clearDrawing } from 'store';
-import { RootState } from '../../redux/store';
+import { RootState, useAppSelector, useAppDispatch,  } from '../../redux/store';
+import { setDrawingColor, setBrushSize, clearDrawing } from '../../redux/slices/memeSlice';
 
 // Component
 const DrawPanel: React.FC = () => {

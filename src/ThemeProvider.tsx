@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
-import { lightTheme, darkTheme, ThemeType } from './theme';
+import { lightTheme, darkTheme } from './theme';
+import { GlobalStyles } from './GlobalStyles';
 
 interface ThemeContextType {
   isDarkTheme: boolean;
@@ -12,6 +13,7 @@ const ThemeContext = createContext<ThemeContextType>({
   toggleTheme: () => {},
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = () => useContext(ThemeContext);
 
 interface ThemeProviderProps {
@@ -42,6 +44,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   return (
     <ThemeContext.Provider value={{ isDarkTheme, toggleTheme }}>
       <StyledThemeProvider theme={isDarkTheme ? darkTheme : lightTheme}>
+        <GlobalStyles theme={isDarkTheme ? darkTheme : lightTheme}/>
         {children}
       </StyledThemeProvider>
     </ThemeContext.Provider>

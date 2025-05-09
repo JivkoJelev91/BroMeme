@@ -1,15 +1,15 @@
 import { Provider } from 'react-redux'
 import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
-import { store } from 'store'
+import { store } from './redux/store'
 import './index.css'
 import App from 'src/App'
 import { BrowserRouter } from 'react-router-dom'
-import React from 'react'
 import { ThemeProvider } from './ThemeProvider'
-import { GlobalStyles } from './GlobalStyles'
+import { supabase } from './supabase/supabaseConfig'
 
 // Create a component to handle the auth redirect
+// eslint-disable-next-line react-refresh/only-export-components
 function AuthHandler() {
   useEffect(() => {
     const handleAuthRedirect = async () => {
@@ -43,15 +43,14 @@ function AuthHandler() {
 
 // Include this component in your app
 createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+  <StrictMode>
     <Provider store={store}>
     <ThemeProvider>
       <BrowserRouter>
-      <GlobalStyles />
         <AuthHandler />
         <App />
       </BrowserRouter>
       </ThemeProvider>
     </Provider>
-  </React.StrictMode>,
+  </StrictMode>,
 );

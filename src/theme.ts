@@ -4,6 +4,7 @@ export const lightTheme = {
     cardBackground: '#ffffff',
     primary: '#4285f4',
     secondary: '#f0f5ff',
+    primaryHover: '#0069D9',
     text: {
       primary: '#333333',
       secondary: '#666666',
@@ -18,6 +19,7 @@ export const lightTheme = {
     input: {
       background: '#ffffff',
       placeholder: '#999999',
+      border: '#dddddd',
     },
     success: '#34a853',
     error: '#ea4335',
@@ -37,6 +39,7 @@ export const darkTheme = {
     cardBackground: '#1f1f1f',
     primary: '#4f9bff',
     secondary: '#2a3142',
+    primaryHover: '#0069D9',
     text: {
       primary: '#e0e0e0',
       secondary: '#b0b0b0',
@@ -51,6 +54,7 @@ export const darkTheme = {
     input: {
       background: '#2a2a2a',
       placeholder: '#707070',
+      border: '#383838',
     },
     success: '#46c15a',
     error: '#f44336',

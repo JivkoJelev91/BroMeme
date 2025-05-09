@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useAppSelector, useAppDispatch, setActiveTab, RootState } from 'store';
+import { useAppSelector, useAppDispatch, RootState } from '../redux/store';
+import { setActiveTab } from '../redux/slices/memeSlice';
 import { TextPanel, EffectsPanel, DrawPanel, RotatePanel } from 'components';
 import UploadPanel from './panels/UploadPanel';
 
@@ -48,28 +49,28 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       <ScrollableContent>
         <ControlTabs>
           <ControlTab 
-            active={activeTab === 'text'} 
+            $active={activeTab === 'text'} 
             onClick={() => dispatch(setActiveTab('text'))}
           >
             <TabIcon>T</TabIcon>
             <TabLabel>Text</TabLabel>
           </ControlTab>
           <ControlTab 
-            active={activeTab === 'effects'} 
+            $active={activeTab === 'effects'} 
             onClick={() => dispatch(setActiveTab('effects'))}
           >
             <TabIcon>✨</TabIcon>
             <TabLabel>Effects</TabLabel>
           </ControlTab>
           <ControlTab 
-            active={activeTab === 'draw'} 
+            $active={activeTab === 'draw'} 
             onClick={() => dispatch(setActiveTab('draw'))}
           >
             <TabIcon>✏️</TabIcon>
             <TabLabel>Draw</TabLabel>
           </ControlTab>
           <ControlTab 
-            active={activeTab === 'rotate'} 
+            $active={activeTab === 'rotate'} 
             onClick={() => dispatch(setActiveTab('rotate'))}
           >
             <TabIcon>↻</TabIcon>
@@ -77,7 +78,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           </ControlTab>
           {isAuthenticated && (
             <ControlTab 
-              active={activeTab === 'upload'}
+              $active={activeTab === 'upload'}
               onClick={() => dispatch(setActiveTab('upload'))}
             >
               <TabIcon>📤</TabIcon>
@@ -202,13 +203,13 @@ const TabLabel = styled.span`
   }
 `;
 
-const ControlTab = styled.button<{ active?: boolean }>`
+const ControlTab = styled.button<{ $active?: boolean }>`
   padding: 0.6rem 0.9rem;
   border: none;
   background: none;
   font-size: 1rem;
   cursor: pointer;
-  color: ${props => props.active ? 
+  color: ${props => props.$active ? 
     props.theme.colors.text.primary : 
     props.theme.colors.text.secondary};
   position: relative;
@@ -232,7 +233,7 @@ const ControlTab = styled.button<{ active?: boolean }>`
     left: 0;
     width: 100%;
     height: 3px;
-    background: ${props => props.active ? 
+    background: ${props => props.$active ? 
       props.theme.colors.primary : 'transparent'};
   }
 `;
@@ -280,54 +281,6 @@ const GenerateButton = styled.button`
   
   @media (max-width: 768px) {
     padding: 0.75rem 0;
-  }
-`;
-
-const PanelContainer = styled.div`
-  background: ${({ theme }) => theme.colors.cardBackground};
-  border-radius: 8px;
-  box-shadow: 0 2px 4px ${({ theme }) => theme.colors.shadow};
-  overflow: hidden;
-  
-  @media (min-width: 768px) {
-    width: 38%;
-  }
-  
-  @media (max-width: 767px) {
-    margin-top: 1rem;
-  }
-`;
-
-const PanelHeader = styled.div`
-  padding: 1rem;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.divider};
-`;
-
-const PanelTitle = styled.h3`
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.text.primary};
-`;
-
-const PanelContent = styled.div`
-  padding: 1rem;
-`;
-
-const ActionButton = styled.button`
-  background: ${({ theme }) => theme.colors.primary};
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 0.8rem;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  width: 100%;
-  transition: background 0.2s;
-  
-  &:hover {
-    background: ${({ theme }) => theme.colors.primary}dd;
   }
 `;
 

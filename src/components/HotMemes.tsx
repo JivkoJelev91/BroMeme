@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useAppDispatch } from 'store';
-import { setActiveTab, setMemeImage, setMemeImageName } from '../redux';
-import { getPopularMemes, MemeTemplate } from '../memeTemplates';
+import { useAppDispatch } from '../redux/store';
+import { setActiveTab, setMemeImageName, setMemeImage } from '../redux/slices/memeSlice';
+import { MemeTemplate } from '../utils/memeTemplates';
 import { supabase } from '../supabase/supabaseConfig';
 
 const HotMemes: React.FC = () => {
@@ -29,9 +29,9 @@ const HotMemes: React.FC = () => {
         if (data) {
           setHotMemes(data);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching hot memes:', err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
         setIsLoading(false);
       }
@@ -55,21 +55,14 @@ const HotMemes: React.FC = () => {
           const dataUrl = canvas.toDataURL('image/png');
           dispatch(setMemeImage(dataUrl));
           dispatch(setMemeImageName(meme.name));
-        } catch (error) {
+        } catch (_error) {
           // Fallback
-          dispatch(setMemeImage(meme.url));
-          dispatch(setMemeImageName(meme.name));
+          console.error('Error converting image to data URL:', _error);
         }
       }
     };
     
-    img.onerror = () => {
-      // Fallback on error
-      dispatch(setMemeImage(meme.url));
-      dispatch(setMemeImageName(meme.name));
-    };
-    
-    img.src = meme.url;
+    img.src = String(typeof meme.url === 'function' ? meme.url('') : meme.url);
   };
   
   return (
@@ -105,7 +98,7 @@ const HotMemes: React.FC = () => {
               onClick={() => handleSelectMeme(meme)}
             >
               <MemeImageContainer>
-                <MemeImage src={meme.url} alt={meme.name} />
+                <MemeImage src={String(typeof meme.url === 'function' ? meme.url('') : meme.url)} alt={meme.name} />
               </MemeImageContainer>
               <MemeName>{meme.name}</MemeName>
             </MemeCard>

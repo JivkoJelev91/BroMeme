@@ -1,4 +1,5 @@
 export interface MemeTemplate {
+    url(url: string): string;
     id: string;
     name: string;
     category: string;

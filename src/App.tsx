@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { toPng } from 'html-to-image'
 import styled from 'styled-components'
-import { useAppDispatch, useAppSelector, setMemeImage, setMemeImageName } from 'store'
+import { useAppDispatch, useAppSelector } from './redux/store'
 import './App.css'
 import { Header, TabBar, MemePreview, ControlPanel, HotMemes, Footer, MemeTemplatesPanel } from 'components'
 import { supabase } from './supabase/supabaseConfig'
 import { setUser } from './redux/slices/authSlice'
+import { setMemeImage, setMemeImageName } from './redux'
 
 // Styled components
 const AppContainer = styled.div`
@@ -52,7 +53,7 @@ const TemplatesContainer = styled.div`
 `;
 
 function App() {
-  const memeRef = useRef<HTMLDivElement | null>(null)
+  const memeRef = useRef<HTMLDivElement>(null!)
   const { activeTab } = useAppSelector(state => state.meme)
   const dispatch = useAppDispatch()
 

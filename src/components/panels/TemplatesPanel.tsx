@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { HotMemes } from 'components';
 import { getAllMemeTemplates, getMemeTemplatesByCategory } from 'src/utils/uploadService';
-import { useAppDispatch } from 'store';
+import { useAppDispatch } from '../../redux/store';
 import { setMemeImage } from '../../redux';
 
 // Define MemeTemplate interface
 interface MemeTemplate {
-  id: string;
+  id?: string;
   name: string;
   url: string;
   categories: string[];
-  created_at: string;
+  created_at?: string;
 }
 
 interface TemplatesPanelProps {

@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import { FiHeart, FiCode, FiCoffee, FiGithub } from 'react-icons/fi';
-import { useAppSelector, useAppDispatch } from 'store';
+import { FiHeart, FiCoffee, FiGithub } from 'react-icons/fi';
+import { useAppSelector, useAppDispatch } from '../redux/store';
 import { setActiveTab } from '../redux';
 
 // Styled components

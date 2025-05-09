@@ -17,7 +17,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: window.location.origin,
@@ -28,9 +28,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       
       // User will be redirected to Google for authentication
       console.log('Redirecting to Google for authentication');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error signing in with Google:', err);
-      setError(err.message || 'Failed to sign in with Google');
+      setError(
+        err && typeof err === 'object' && 'message' in err
+          ? String(err.message)
+          : 'Failed to sign in with Google'
+      );
     } finally {
       setLoading(false);
     }
@@ -108,82 +112,6 @@ const ModalTitle = styled.h3`
 
 const ModalContent = styled.div`
   padding: 1.5rem;
-`;
-
-const FormGroup = styled.div`
-  margin-bottom: 1.25rem;
-`;
-
-const FormLabel = styled.label`
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.text.primary};
-`;
-
-const FormInput = styled.input`
-  width: 100%;
-  padding: 0.75rem;
-  font-size: 1rem;
-  border: 1px solid ${({ theme }) => theme.colors.border.medium};
-  border-radius: 4px;
-  background: ${({ theme }) => theme.colors.input.background};
-  color: ${({ theme }) => theme.colors.text.primary};
-  
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}33;
-  }
-  
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.input.placeholder};
-  }
-`;
-
-const SubmitButton = styled.button`
-  background: ${({ theme }) => theme.colors.primary};
-  color: white;
-  width: 100%;
-  padding: 0.8rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-  
-  &:hover {
-    background: ${({ theme }) => theme.colors.primary}dd;
-  }
-  
-  &:disabled {
-    background: ${({ theme }) => theme.colors.border.medium};
-    cursor: not-allowed;
-  }
-`;
-
-const ToggleAuthModeText = styled.p`
-  margin: 1.25rem 0 0;
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.colors.text.secondary};
-  text-align: center;
-`;
-
-const ToggleAuthModeButton = styled.button`
-  background: none;
-  border: none;
-  color: ${({ theme }) => theme.colors.primary};
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0;
-  margin-left: 0.25rem;
-  
-  &:hover {
-    text-decoration: underline;
-  }
 `;
 
 const CloseButton = styled.button`

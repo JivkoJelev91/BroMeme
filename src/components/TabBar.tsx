@@ -1,62 +1,18 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
-import { useAppSelector, useAppDispatch } from 'store';
+import { useAppSelector, useAppDispatch } from '../redux/store';
 import { setActiveTab } from '../redux';
 
 const TabBar: React.FC = () => {
   const { activeTab } = useAppSelector(state => state.meme);
   const dispatch = useAppDispatch();
-  const tabListRef = useRef<HTMLDivElement>(null);
-  const [showScrollButtons, setShowScrollButtons] = useState(false);
-  const { isAuthenticated } = useAppSelector(state => state.auth);
-
-  // Check if scrolling is needed and scroll to active tab
-  useEffect(() => {
-    const tabList = tabListRef.current;
-    if (tabList) {
-      const checkOverflow = () => {
-        setShowScrollButtons(tabList.scrollWidth > tabList.clientWidth);
-      };
-      
-      // Initial check
-      checkOverflow();
-      
-      // Check on resize
-      window.addEventListener('resize', checkOverflow);
-      
-      // Scroll to active tab
-      const activeTabElement = tabList.querySelector(`[data-tab="${activeTab}"]`);
-      if (activeTabElement) {
-        const tabRect = activeTabElement.getBoundingClientRect();
-        const listRect = tabList.getBoundingClientRect();
-        
-        if (tabRect.left < listRect.left || tabRect.right > listRect.right) {
-          tabList.scrollLeft = (activeTabElement as HTMLElement).offsetLeft - 20;
-        }
-      }
-      
-      return () => window.removeEventListener('resize', checkOverflow);
-    }
-  }, [activeTab]);
-  
-  // Scroll tab list left or right
-  const scrollTabs = (direction: 'left' | 'right') => {
-    const tabList = tabListRef.current;
-    if (tabList) {
-      const scrollAmount = tabList.clientWidth * 0.6;
-      tabList.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  };
   
   return (
     <TabBarContainer>
       <TabsGroup>
         {/* Editor tab */}
         <Tab 
-          active={activeTab === 'text' || activeTab === 'effects' || activeTab === 'draw' || activeTab === 'rotate'}
+          $active={activeTab === 'text' || activeTab === 'effects' || activeTab === 'draw' || activeTab === 'rotate'}
           onClick={() => dispatch(setActiveTab('text'))}
           data-tab="text"
         >
@@ -65,20 +21,20 @@ const TabBar: React.FC = () => {
         </Tab>
         
         {/* AI Editor tab - DISABLED */}
-        <Tab active={false} style={{ cursor: 'not-allowed', opacity: 0.5 }}>
+        <Tab $active={false} style={{ cursor: 'not-allowed', opacity: 0.5 }}>
           <TabIcon>🤖</TabIcon>
           <TabLabel>AI Editor</TabLabel>
         </Tab>
         {/* Template category tabs */}
         <Tab 
-          active={activeTab === 'favorites'} 
+          $active={activeTab === 'favorites'} 
           onClick={() => dispatch(setActiveTab('favorites'))}
         >
           <TabIcon>🎭</TabIcon>
           <TabLabel>Favorites</TabLabel>
         </Tab>
         <Tab 
-          active={activeTab === 'popular'}
+          $active={activeTab === 'popular'}
           onClick={() => dispatch(setActiveTab('popular'))}
           data-tab="popular"
         >
@@ -87,7 +43,7 @@ const TabBar: React.FC = () => {
         </Tab>
 
         <Tab 
-          active={activeTab === 'hot'}
+          $active={activeTab === 'hot'}
           onClick={() => dispatch(setActiveTab('hot'))}
         >
           <TabIcon>⚡</TabIcon>
@@ -95,15 +51,15 @@ const TabBar: React.FC = () => {
         </Tab>
         
         <Tab 
-          active={activeTab === 'classic'}
+          $active={activeTab === 'classic'}
           onClick={() => dispatch(setActiveTab('classic'))}
         >
           <TabIcon>🏆</TabIcon>
-          Classi
+          Classic
         </Tab>
         
         <Tab 
-          active={activeTab === 'reaction'}
+          $active={activeTab === 'reaction'}
           onClick={() => dispatch(setActiveTab('reaction'))}
           data-tab="reaction"
         >
@@ -112,7 +68,7 @@ const TabBar: React.FC = () => {
         </Tab>
         
         <Tab 
-          active={activeTab === 'cat'}
+          $active={activeTab === 'cat'}
           onClick={() => dispatch(setActiveTab('cat'))}
           data-tab="cats"
         >
@@ -121,7 +77,7 @@ const TabBar: React.FC = () => {
         </Tab>
         
         <Tab 
-          active={activeTab === 'dog'}
+          $active={activeTab === 'dog'}
           onClick={() => dispatch(setActiveTab('dog'))}
           data-tab="dogs"
         >
@@ -129,7 +85,7 @@ const TabBar: React.FC = () => {
           <TabLabel>Dog</TabLabel>
         </Tab>
         <Tab 
-          active={activeTab === 'all'} 
+          $active={activeTab === 'all'} 
           onClick={() => dispatch(setActiveTab('all'))}
         >
           <TabIcon>🎭</TabIcon>
@@ -184,16 +140,16 @@ const TabsGroup = styled.div`
   }
 `;
 
-const Tab = styled.button<{ active: boolean }>`
+const Tab = styled.button<{ $active: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 0.75rem 0.5rem;
   border: none;
-  background: ${props => props.active ? 
+  background: ${props => props.$active ? 
     props.theme.colors.secondary : 'transparent'};
-  color: ${props => props.active ? 
+  color: ${props => props.$active ? 
     props.theme.colors.primary : props.theme.colors.text.secondary};
   border-radius: 6px;
   cursor: pointer;
@@ -202,7 +158,7 @@ const Tab = styled.button<{ active: boolean }>`
   min-height: 70px; /* Ensure consistent height */
   
   &:hover {
-    background: ${props => props.active ? 
+    background: ${props => props.$active ? 
       props.theme.colors.secondary : 
       props.theme.colors.divider};
   }

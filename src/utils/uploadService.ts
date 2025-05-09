@@ -23,7 +23,7 @@ export const uploadMemeTemplate = async (
     const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
     const filePath = `meme-templates/${fileName}`;
 
-    const { error: uploadError, data: uploadData } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('memes')
       .upload(filePath, file);
 
