@@ -1,9 +1,9 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { RefObject, useRef, useState, useEffect } from "react";
+import React, { RefObject, useRef, useState, useEffect, useCallback } from "react";
 import styled, { css } from "styled-components";
 import { addStroke, updateTextPosition } from "../redux";
 import { RootState, useAppSelector, useAppDispatch } from "../redux/store";
 import ResponsiveText from "./ResponsiveText";
+import debounce from "lodash/debounce";
 
 // Component
 interface MemePreviewProps {
@@ -51,6 +51,26 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
   const topTextRef = useRef<HTMLDivElement>(null);
   const bottomTextRef = useRef<HTMLDivElement>(null);
 
+  // Add local state for smoother dragging
+  const [localTopPosition, setLocalTopPosition] = useState({ x: 0, y: 0 });
+  const [localBottomPosition, setLocalBottomPosition] = useState({ x: 0, y: 0 });
+
+  // Sync local positions with redux when not dragging
+  useEffect(() => {
+    if (!draggingText) {
+      setLocalTopPosition(topTextPosition);
+      setLocalBottomPosition(bottomTextPosition);
+    }
+  }, [topTextPosition, bottomTextPosition, draggingText]);
+
+  // Debounced dispatch to Redux
+  const debouncedUpdatePosition = useCallback(
+    debounce((position: "top" | "bottom", x: number, y: number) => {
+      dispatch(updateTextPosition({ position, x, y }));
+    }, 50), // 50ms debounce for Redux updates
+    [dispatch]
+  );
+
   // Check if draw panel is active
   const isDrawPanelActive = activeTab === "draw";
   const isTextDraggable = activeTab === "text";
@@ -70,41 +90,63 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
     updateCanvasSize();
   }, [rotationAngle]);
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!draggingText || !memeRef.current) return;
+  // Handle mouse movement with immediate local updates and debounced Redux updates
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!draggingText || !memeRef.current) return;
 
-    const containerRect = memeRef.current.getBoundingClientRect();
-    const newX = e.clientX - containerRect.left - dragOffset.x;
-    const newY = e.clientY - containerRect.top - dragOffset.y;
+      const containerRect = memeRef.current.getBoundingClientRect();
+      const newX = e.clientX - containerRect.left - dragOffset.x;
+      const newY = e.clientY - containerRect.top - dragOffset.y;
+
+      // Apply boundaries
+      if (newY < -150 || newY > 150) return;
+      if (newX < -150 || newX > 150) return;
+
+      // Update local state immediately for smooth UI
+      if (draggingText === "top") {
+        setLocalTopPosition({ x: newX, y: newY });
+      } else {
+        setLocalBottomPosition({ x: newX, y: newY });
+      }
+
+      // Debounced update to Redux
+      debouncedUpdatePosition(draggingText, newX, newY);
+    },
+    [draggingText, memeRef, dragOffset, debouncedUpdatePosition]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    if (!draggingText) return;
+
+    // On release, ensure Redux state is updated with final position
+    const position =
+      draggingText === "top" ? localTopPosition : localBottomPosition;
 
     dispatch(
       updateTextPosition({
         position: draggingText,
-        x: newX,
-        y: newY,
+        x: position.x,
+        y: position.y,
       })
     );
-  };
 
-  const handleMouseUp = () => {
     setDraggingText(null);
-  };
+  }, [draggingText, localTopPosition, localBottomPosition, dispatch]);
 
-  // Update the mousemove handler useEffect
+  // Event listener cleanup
   useEffect(() => {
     if (!draggingText) return;
 
-    // Update the mousemove handler
-
-    // Add event listeners to document
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+      debouncedUpdatePosition.cancel();
     };
-  }, [draggingText, handleMouseMove, handleMouseUp]);
+  }, [draggingText, handleMouseMove, handleMouseUp, debouncedUpdatePosition]);
 
   // Add this useEffect to set initial text positions when image loads
   useEffect(() => {
@@ -319,7 +361,15 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                 <MemeTextContainer
                   ref={topTextRef}
                   style={{
-                    transform: `translate(${topTextPosition.x}px, ${topTextPosition.y}px)`,
+                    transform: `translate(${
+                      draggingText === "top"
+                        ? localTopPosition.x
+                        : topTextPosition.x
+                    }px, ${
+                      draggingText === "top"
+                        ? localTopPosition.y
+                        : topTextPosition.y
+                    }px)`,
                     cursor: isTextDraggable ? "move" : "default",
                   }}
                   onMouseDown={(e) => handleTextMouseDown(e, "top")}
@@ -355,7 +405,15 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                 <MemeTextContainer
                   ref={bottomTextRef}
                   style={{
-                    transform: `translate(${bottomTextPosition.x}px, ${bottomTextPosition.y}px)`,
+                    transform: `translate(${
+                      draggingText === "bottom"
+                        ? localBottomPosition.x
+                        : bottomTextPosition.x
+                    }px, ${
+                      draggingText === "bottom"
+                        ? localBottomPosition.y
+                        : bottomTextPosition.y
+                    }px)`,
                     cursor: isTextDraggable ? "move" : "default",
                   }}
                   onMouseDown={(e) => handleTextMouseDown(e, "bottom")}
