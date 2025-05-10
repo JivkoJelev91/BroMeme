@@ -48,6 +48,7 @@ This project was built in a flow state with the help of multiple AI tools — wh
 - 🌐 Category Tabs for quick discovery  
 - 💖 **Favorite Functionality**: Users can favorite memes for quick access later  
 - 🌗 **Dark/Light Theme Toggle**  
+- 🔄 **Paginator**: Browse meme results page by page for better navigation  
 - 🔐 **Login with Google**
 
 ---
@@ -68,6 +69,13 @@ This project was built in a flow state with the help of multiple AI tools — wh
 - **Redux Toolkit**: Global state management using slices and selectors  
 - **Vite**: Lightning-fast development environment  
 - **styled-components**: For writing CSS in JavaScript using component-level styles  
+
+---
+
+## 🌐 Live Demo
+
+Check out the deployed app:  
+👉 [https://bro-meme-again.vercel.app](https://bro-meme-again.vercel.app)
 
 ---
 
