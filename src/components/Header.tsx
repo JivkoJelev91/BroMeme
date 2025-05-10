@@ -128,8 +128,8 @@ const HeaderActions = styled.div`
 const Avatar = styled.div`
   width: 38px;
   height: 38px;
-  background: ${({ theme }) => theme.colors.cardBackground};
-  color: white;
+  background: ${({ theme }) => theme.colors.primary}; // Change to use primary color
+  color: white; // Keep white text since primary color backgrounds typically need white text
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -137,6 +137,7 @@ const Avatar = styled.div`
   cursor: pointer;
   font-weight: 500;
   font-size: 1.1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); // Optional: adds a subtle shadow
 
   @media (max-width: 600px) {
     width: 32px;

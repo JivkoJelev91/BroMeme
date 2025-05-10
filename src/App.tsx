@@ -145,6 +145,7 @@ const renderMainContent = () => {
   else if (['popular', 'hot', 'classic', 'reaction', 'cat', 'dog', 'all', 'favorites'].includes(activeTab)) {
     return (
       <MemeTemplatesPanel 
+      key={`${activeTab}-${activeTab === 'favorites'}`}
       category={activeTab} 
       isFavorites={activeTab === 'favorites'} 
     />

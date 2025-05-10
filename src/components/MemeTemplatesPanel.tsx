@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useAppDispatch, useAppSelector } from '../redux/store';
@@ -31,7 +32,7 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const ITEMS_PER_PAGE = 12;
+  const ITEMS_PER_PAGE = 8;
   const dispatch = useAppDispatch();
   const { user } = useAppSelector(state => state.auth);
 
