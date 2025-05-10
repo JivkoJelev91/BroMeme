@@ -511,7 +511,6 @@ const MemeCard = styled.div`
   width: 100%;
   max-width: 450px;
   height: auto;
-  max-height: calc(100vh - 250px);
   background: ${({ theme }) => theme.colors.cardBackground};
   border-radius: 4px;
   overflow: hidden;
@@ -521,7 +520,6 @@ const MemeCard = styled.div`
   justify-content: center;
   box-shadow: 0 4px 12px ${({ theme }) => theme.colors.shadow};
   aspect-ratio: auto;
-
   border: none;
 `;
 

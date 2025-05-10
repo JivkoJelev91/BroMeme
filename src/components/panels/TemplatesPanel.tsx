@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { HotMemes } from 'components';
+import { RecentMemes } from 'components';
 import { getAllMemeTemplates, getMemeTemplatesByCategory } from 'src/utils/uploadService';
 import { useAppDispatch } from '../../redux/store';
 import { setMemeImage } from '../../redux';
@@ -59,7 +59,7 @@ const TemplatesPanel: React.FC<TemplatesPanelProps> = ({ category = 'popular' })
 
   return (
     <TemplatesPanelContainer>
-      <HotMemes />
+      <RecentMemes />
       
       <TemplatesSection>
         <SectionTitle>{category === 'all' ? 'All Templates' : `${category.charAt(0).toUpperCase() + category.slice(1)} Templates`}</SectionTitle>

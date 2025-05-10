@@ -5,7 +5,7 @@ import { setActiveTab, setMemeImageName, setMemeImage } from '../redux/slices/me
 import { MemeTemplate } from '../utils/memeTemplates';
 import { supabase } from '../supabase/supabaseConfig';
 
-const HotMemes: React.FC = () => {
+const RecentMemes: React.FC = () => {
   const [hotMemes, setHotMemes] = useState<MemeTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +30,7 @@ const HotMemes: React.FC = () => {
           setHotMemes(data);
         }
       } catch (err: unknown) {
-        console.error('Error fetching hot memes:', err);
+        console.error('Error fetching recent memes:', err);
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
         setIsLoading(false);
@@ -68,10 +68,10 @@ const HotMemes: React.FC = () => {
   return (
     <Container>
       <HeaderRow>
-        <Title>Hot Meme Templates</Title>
+        <Title>Recent Memes</Title>
         <ViewAllLink href="#" onClick={(e) => {
           e.preventDefault();
-          dispatch(setActiveTab('hot'));
+          dispatch(setActiveTab('all'));
         }}>
           View All
         </ViewAllLink>
@@ -236,4 +236,4 @@ const MemeName = styled.div`
   border-top: 1px solid ${({ theme }) => theme.colors.divider};
 `;
 
-export default HotMemes;
+export default RecentMemes;

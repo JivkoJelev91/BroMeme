@@ -3,7 +3,7 @@ export { default as Header } from './Header';
 export { default as TabBar } from './TabBar';
 export { default as MemePreview } from './MemePreview';
 export { default as ControlPanel } from './ControlPanel';
-export { default as HotMemes } from './HotMemes';
+export { default as RecentMemes } from './RecentMemes';
 export { default as Footer } from './Footer';
 export { default as MemeTemplatesPanel } from './MemeTemplatesPanel';
 

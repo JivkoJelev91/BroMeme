@@ -1,10 +1,9 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { useAppDispatch, useAppSelector } from '../redux/store';
 import { setMemeImage, setMemeImageName, setActiveTab } from '../redux';
 import { supabase } from '../supabase/supabaseConfig';
-import { FiHeart } from 'react-icons/fi';
+import { FiHeart, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { FaHeart } from 'react-icons/fa';
 import AuthModal from './AuthModal';
 
@@ -29,71 +28,97 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-    const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const ITEMS_PER_PAGE = 12;
   const dispatch = useAppDispatch();
   const { user } = useAppSelector(state => state.auth);
 
   // Fetch templates based on category or favorites
-  const fetchTemplates = async () => {
+  const fetchTemplates = async (page = 1) => {
     setIsLoading(true);
     setError(null);
     
     try {
-      console.log(`Fetching templates for ${isFavorites ? 'favorites' : `category: ${category}`}`);
+      console.log(`Fetching templates for ${isFavorites ? 'favorites' : `category: ${category}`}, page ${page}`);
+      
+      const from = (page - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
       
       if (isFavorites) {
-        // For favorites view, we need to:
-        // 1. Get the user's favorite template IDs
-        // 2. Then get the actual templates with those IDs
-        
+        // For favorites view
         if (!user) {
           setTemplates([]);
           setError('You must be logged in to view favorites');
           return;
         }
         
-        // First get the favorite template IDs
-        const { data: favoriteData, error: favoriteError } = await supabase
-          .from('favorites')
-          .select('template_id')
-          .eq('user_id', user.id);
+        try {
+          // First just get all favorite template IDs for this user
+          const { data: favoriteData, error: favoriteError } = await supabase
+            .from('favorites')
+            .select('template_id')
+            .eq('user_id', user.id);
+            
+          if (favoriteError) throw new Error(favoriteError.message);
           
-        if (favoriteError) throw new Error(favoriteError.message);
-        
-        // If no favorites found, return empty array
-        if (!favoriteData?.length) {
+          // If no favorites found, return empty array
+          if (!favoriteData?.length) {
+            setTemplates([]);
+            setTotalPages(1);
+            return;
+          }
+          
+          // Set total items and pages
+          const count = favoriteData.length;
+          setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
+          
+          // Extract the template IDs for the current page
+          const templateIds = favoriteData
+            .map(fav => fav.template_id)
+            .slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+          
+          // Then fetch the templates with those IDs
+          const { data: templatesData, error: templatesError } = await supabase
+            .from('meme_templates')
+            .select('*')
+            .in('id', templateIds);
+            
+          if (templatesError) throw new Error(templatesError.message);
+          
+          setTemplates(templatesData || []);
+        } catch (err: unknown) {
+          console.error('Error fetching favorites:', err);
+          setError(err instanceof Error ? err.message : 'An unknown error occurred');
           setTemplates([]);
-          return;
         }
         
-        // Extract the template IDs from favorites
-        const templateIds = favoriteData.map(fav => fav.template_id);
-        
-        // Then fetch the templates with those IDs
-        const { data: templatesData, error: templatesError } = await supabase
-          .from('meme_templates')
-          .select('*')
-          .in('id', templateIds);
-          
-        if (templatesError) throw new Error(templatesError.message);
-        
-        setTemplates(templatesData || []);
       } else {
         // For regular category view, filter by category
-        let query = supabase.from('meme_templates').select('*');
+        let countQuery = supabase.from('meme_templates').select('id', { count: 'exact' });
+        let dataQuery = supabase.from('meme_templates').select('*').range(from, to);
         
         // Apply category filter if not "all"
         if (category !== 'all') {
-          // For dog/cat categories which might have special handling
           if (category === 'dog' || category === 'cat') {
-            query = query.contains('categories', [category.toLowerCase()]);
+            countQuery = countQuery.contains('categories', [category.toLowerCase()]);
+            dataQuery = dataQuery.contains('categories', [category.toLowerCase()]);
           } else {
-            query = query.filter('categories', 'cs', `{${category}}`);
+            countQuery = countQuery.filter('categories', 'cs', `{${category}}`);
+            dataQuery = dataQuery.filter('categories', 'cs', `{${category}}`);
           }
         }
         
-        // Get results
-        const { data, error } = await query;
+        // Get total count first
+        const { count, error: countError } = await countQuery;
+        
+        if (countError) throw new Error(countError.message);
+        
+        setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
+        
+        // Then get the data for current page
+        const { data, error } = await dataQuery;
         
         if (error) throw new Error(error.message);
         
@@ -108,6 +133,7 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
       console.error('Error fetching templates:', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
       setTemplates([]);
+      setTotalPages(1);
     } finally {
       setIsLoading(false);
     }
@@ -130,11 +156,15 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
       console.error('Error fetching user favorites:', err);
     }
   };
-
-  // Fetch templates when component mounts or category/favorites changes
+  // Fetch templates when component mounts or category/favorites/page changes
   useEffect(() => {
-    fetchTemplates();
-  }, [category, isFavorites, user]);
+    fetchTemplates(currentPage);
+  }, [category, isFavorites, user, currentPage]);
+
+  // Reset to page 1 when category changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [category, isFavorites]);
 
   const toggleFavorite = async (templateId: string, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent template selection when clicking favorite button
@@ -214,6 +244,23 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
     img.src = template.url;
   };
   
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      handlePageChange(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      handlePageChange(currentPage + 1);
+    }
+  };
+
   // Get the category title for display
   const getCategoryTitle = () => {
     if (isFavorites) return 'My Favorites';
@@ -244,7 +291,7 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
       ) : error && error !== 'You must be logged in to view favorites' ? (
         <ErrorContainer>
           <div>Error loading templates: {error}</div>
-          <RefreshButton onClick={fetchTemplates}>Try Again</RefreshButton>
+          <RefreshButton onClick={() => fetchTemplates(currentPage)}>Try Again</RefreshButton>
         </ErrorContainer>
       ) : !user && isFavorites ? (
         <LoginPromptContainer>
@@ -253,56 +300,113 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
           <LoginMessage>
             Log in to save your favorite meme templates and access them anytime.
           </LoginMessage>
-       <LoginButton onClick={() => {
-          setAuthModalOpen(true)
-        }}>
-          Sign In
-        </LoginButton>
+          <LoginButton onClick={() => setAuthModalOpen(true)}>
+            Sign In
+          </LoginButton>
         </LoginPromptContainer>
       ) : (
-        <TemplatesGrid>
-          {templates.length > 0 ? (
-            templates.map(template => (
-              <TemplateCard key={template.id} onClick={() => handleSelectTemplate(template)}>
-                <TemplateImage src={template.url} alt={template.name} />
-                {user && (
-                  <FavoriteButton 
-                    onClick={(event) => toggleFavorite(template.id, event)}
-                    $isFavorite={favoriteIds.includes(template.id)}
-                  >
-                    {favoriteIds.includes(template.id) ? <FaHeart /> : <FiHeart />}
-                  </FavoriteButton>
+        <MainContent>
+          <TemplatesGrid>
+            {templates.length > 0 ? (
+              templates.map(template => (
+                <TemplateCard 
+                  key={template.id} 
+                  onClick={() => handleSelectTemplate(template)}
+                >
+                  <TemplateImage src={template.url} alt={template.name} />
+                  {user && (
+                    <FavoriteButton 
+                      onClick={(event) => toggleFavorite(template.id, event)}
+                      $isFavorite={favoriteIds.includes(template.id)}
+                    >
+                      {favoriteIds.includes(template.id) ? <FaHeart /> : <FiHeart />}
+                    </FavoriteButton>
+                  )}
+                  <TemplateName>{template.name}</TemplateName>
+                </TemplateCard>
+              ))
+            ) : (
+              <NoResults>
+                {isFavorites ? (
+                  <div>
+                    You haven't added any favorites yet.
+                    <br />
+                    Click the heart icon on memes to add them to your favorites.
+                  </div>
+                ) : (
+                  <div>No templates found for {category} category.</div>
                 )}
-                <TemplateName>{template.name}</TemplateName>
-              </TemplateCard>
-            ))
-          ) : (
-            <NoResults>
-              {isFavorites ? (
-                <div>
-                  You haven't added any favorites yet.
-                  <br />
-                  Click the heart icon on memes to add them to your favorites.
-                </div>
-              ) : (
-                <div>No templates found for {category} category.</div>
-              )}
-              <DebugButton onClick={async () => {
-                const { data } = await supabase.from('meme_templates').select('*');
-                console.log('All templates in database:', data);
-                alert(`Database has ${data?.length || 0} total templates. Check console.`);
-              }}>
-                Check Database
-              </DebugButton>
-            </NoResults>
+              </NoResults>
+            )}
+          </TemplatesGrid>
+          
+          {templates.length > 0 && totalPages > 1 && (
+            <PaginatorContainer>
+              <PaginatorControls>
+                <PageButton 
+                  onClick={handlePrevPage} 
+                  disabled={currentPage === 1}
+                  aria-label="Previous page"
+                >
+                  <FiChevronLeft />
+                </PageButton>
+                
+                <PageNumbers>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    // For simplicity, just show 5 pages
+                    let pageToShow;
+                    
+                    if (totalPages <= 5) {
+                      // If 5 or fewer pages, show all
+                      pageToShow = i + 1;
+                    } else {
+                      // Otherwise, center around current page
+                      const middle = Math.min(Math.max(currentPage, 3), totalPages - 2);
+                      pageToShow = middle - 2 + i;
+                    }
+                    
+                    return (
+                      <PageNumber
+                        key={pageToShow}
+                        $isActive={currentPage === pageToShow}
+                        onClick={() => handlePageChange(pageToShow)}
+                      >
+                        {pageToShow}
+                      </PageNumber>
+                    );
+                  })}
+                  
+                  {totalPages > 5 && currentPage < totalPages - 2 && (
+                    <>
+                      <PageEllipsis>...</PageEllipsis>
+                      <PageNumber
+                        $isActive={currentPage === totalPages}
+                        onClick={() => handlePageChange(totalPages)}
+                      >
+                        {totalPages}
+                      </PageNumber>
+                    </>
+                  )}
+                </PageNumbers>
+                
+                <PageButton 
+                  onClick={handleNextPage} 
+                  disabled={currentPage === totalPages}
+                  aria-label="Next page"
+                >
+                  <FiChevronRight />
+                </PageButton>
+              </PaginatorControls>
+            </PaginatorContainer>
           )}
-        </TemplatesGrid>
+        </MainContent>
       )}
-         {/* Auth Modal */}
-            <AuthModal 
-              isOpen={authModalOpen} 
-              onClose={() => setAuthModalOpen(false)}
-            />
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={authModalOpen} 
+        onClose={() => setAuthModalOpen(false)}
+      />
     </Container>
   );
 };
@@ -330,6 +434,12 @@ const CategoryTitle = styled.h2`
   margin: 0;
   font-size: 1.5rem;
   color: ${({ theme }) => theme.colors.text.primary};
+`;
+
+const MainContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 `;
 
 const TemplatesGrid = styled.div`
@@ -488,21 +598,6 @@ const RefreshButton = styled.button`
   }
 `;
 
-const DebugButton = styled.button`
-  background: ${({ theme }) => theme.colors.secondary};
-  border: 1px solid ${({ theme }) => theme.colors.border.light};
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  margin-top: 1rem;
-  color: ${({ theme }) => theme.colors.text.primary};
-  
-  &:hover {
-    background: ${({ theme }) => theme.colors.divider};
-  }
-`;
-
 const LoginPromptContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -543,6 +638,145 @@ const LoginButton = styled.button`
   &:hover {
     background: ${({ theme }) => theme.colors.primaryHover};
   }
+`;
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const PaginatorContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 2rem 0 1rem;
+  animation: ${fadeIn} 0.3s ease-out;
+`;
+
+const PaginatorControls = styled.div`
+  display: flex;
+  align-items: center;
+  background: ${({ theme }) => theme.colors.cardBackground};
+  border-radius: 8px;
+  padding: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
+`;
+
+const PageButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: ${({ theme }) => theme.colors.text.secondary};
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 6px;
+  
+  &:hover:not(:disabled) {
+    background: ${({ theme }) => theme.colors.secondary};
+    color: ${({ theme }) => theme.colors.text.primary};
+  }
+  
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  
+  svg {
+    stroke-width: 2;
+    font-size: 1.1rem;
+  }
+`;
+
+const PageNumbers = styled.div`
+  display: flex;
+  align-items: center;
+  margin: 0 0.5rem;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -0.5rem;
+    width: 1px;
+    height: 24px;
+    background: ${({ theme }) => theme.colors.divider};
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -0.5rem;
+    width: 1px;
+    height: 24px;
+    background: ${({ theme }) => theme.colors.divider};
+  }
+`;
+
+const PageNumber = styled.button<{ $isActive?: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  border: none;
+  background: ${({ $isActive, theme }) => 
+    $isActive ? theme.colors.primary : 'transparent'};
+  color: ${({ $isActive, theme }) => 
+    $isActive ? 'white' : theme.colors.text.primary};
+  font-weight: ${({ $isActive }) => $isActive ? '500' : '400'};
+  cursor: pointer;
+  transition: all 0.15s;
+  border-radius: 6px;
+  margin: 0 0.15rem;
+  position: relative;
+  overflow: hidden;
+  
+  ${({ $isActive }) => !$isActive && `
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+    
+    &:active {
+      background-color: rgba(0, 0, 0, 0.08);
+    }
+  `}
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.3s ease-out;
+    pointer-events: none;
+  }
+  
+  &:active::after {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+    transition: transform 0.5s, opacity 0.3s;
+  }
+`;
+
+const PageEllipsis = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 36px;
+  color: ${({ theme }) => theme.colors.text.secondary};
+  margin: 0 0.1rem;
 `;
 
 export default MemeTemplatesPanel;

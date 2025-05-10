@@ -3,7 +3,7 @@ import { toPng } from 'html-to-image'
 import styled from 'styled-components'
 import { useAppDispatch, useAppSelector } from './redux/store'
 import './App.css'
-import { Header, TabBar, MemePreview, ControlPanel, HotMemes, Footer, MemeTemplatesPanel } from 'components'
+import { Header, TabBar, MemePreview, ControlPanel, RecentMemes, Footer, MemeTemplatesPanel } from 'components'
 import { supabase } from './supabase/supabaseConfig'
 import { setUser } from './redux/slices/authSlice'
 import { setMemeImage, setMemeImageName } from './redux'
@@ -167,7 +167,7 @@ const renderMainContent = () => {
         {/* Only show hot memes when in editor mode */}
         {isEditorTab && (
           <TemplatesContainer>
-            <HotMemes />
+            <RecentMemes />
           </TemplatesContainer>
         )}
       </Content>
