@@ -99,8 +99,11 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
       } else {
         // For regular category view, filter by category
         let countQuery = supabase.from('meme_templates').select('id', { count: 'exact' });
-        let dataQuery = supabase.from('meme_templates').select('*').range(from, to);
-        
+        let dataQuery = supabase
+                .from('meme_templates')
+                .select('*')
+                .order('created_at', { ascending: false }) // Sort by newest first
+                .range(from, to);        
         // Apply category filter if not "all"
         if (category !== 'all') {
           if (category === 'dog' || category === 'cat') {
