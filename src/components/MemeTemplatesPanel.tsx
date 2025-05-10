@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useAppDispatch, useAppSelector } from '../redux/store';
@@ -220,6 +221,7 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
         ctx.drawImage(img, 0, 0);
         try {
           const dataUrl = canvas.toDataURL('image/png');
+
           dispatch(setMemeImage(dataUrl));
           dispatch(setMemeImageName(template.name));
           // Switch to the editor after selecting a template

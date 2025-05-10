@@ -72,13 +72,17 @@ export const memeSlice = createSlice({
       state.memeImageName = action.payload;
     },
     toggleResponsiveFont: (state) => {
-  state.useResponsiveFont = !state.useResponsiveFont;
-},
+      state.useResponsiveFont = !state.useResponsiveFont;
+    },
     setTopText: (state, action: PayloadAction<string>) => {
       state.topText = action.payload;
     },
     setBottomText: (state, action: PayloadAction<string>) => {
       state.bottomText = action.payload;
+    },
+    resetMemeText: (state) => {
+      state.topText = '';
+      state.bottomText = '';
     },
     setBold: (state, action: PayloadAction<boolean>) => {
       state.bold = action.payload;
@@ -190,7 +194,8 @@ export const {
   setTopTextAlign,
   setBottomTextAlign,
   updateTextPosition,
-  toggleResponsiveFont
+  toggleResponsiveFont,
+  resetMemeText
 } = memeSlice.actions;
 
 export default memeSlice.reducer;

@@ -1,9 +1,11 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { RefObject, useRef, useState, useEffect, useCallback } from "react";
 import styled, { css } from "styled-components";
 import { addStroke, updateTextPosition } from "../redux";
 import { RootState, useAppSelector, useAppDispatch } from "../redux/store";
 import ResponsiveText from "./ResponsiveText";
 import debounce from "lodash/debounce";
+import { resetMemeText } from "src/redux/slices/memeSlice";
 
 // Component
 interface MemePreviewProps {
@@ -29,7 +31,6 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
     bottomFontFamily,
     topTextAlign,
     bottomTextAlign,
-    rotationAngle,
     topTextPosition,
     bottomTextPosition,
     useResponsiveFont,
@@ -54,6 +55,17 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
   // Add local state for smoother dragging
   const [localTopPosition, setLocalTopPosition] = useState({ x: 0, y: 0 });
   const [localBottomPosition, setLocalBottomPosition] = useState({ x: 0, y: 0 });
+  const height = memeRef.current?.offsetHeight || 0;
+  const width = memeRef.current?.offsetWidth || 0;
+  const topHeightBoundary = -(height / 2) + 20;
+  const bottomHeightBoundary = height / 2 - 20;
+  const leftWidthBoundary = -(width / 2) + 52;
+  const rightWidthBoundary = (width / 2) - 52;
+
+  useEffect(() => {
+    dispatch(updateTextPosition({ position: 'top', x: 0, y:topHeightBoundary }));
+    dispatch(updateTextPosition({ position: 'bottom', x: 0, y:bottomHeightBoundary}));
+  }, [bottomHeightBoundary, dispatch, height, topHeightBoundary])
 
   // Sync local positions with redux when not dragging
   useEffect(() => {
@@ -64,12 +76,11 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
   }, [topTextPosition, bottomTextPosition, draggingText]);
 
   // Debounced dispatch to Redux
-  const debouncedUpdatePosition = useCallback(
+  const debouncedUpdatePosition = 
     debounce((position: "top" | "bottom", x: number, y: number) => {
       dispatch(updateTextPosition({ position, x, y }));
-    }, 50), // 50ms debounce for Redux updates
-    [dispatch]
-  );
+    }, 50); // 50ms debounce for Redux updates
+
 
   // Check if draw panel is active
   const isDrawPanelActive = activeTab === "draw";
@@ -85,11 +96,6 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
     drawAllStrokes();
   }, [strokes]);
 
-  // This effect ensures the canvas is properly sized after rotation
-  useEffect(() => {
-    updateCanvasSize();
-  }, [rotationAngle]);
-
   // Handle mouse movement with immediate local updates and debounced Redux updates
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
@@ -98,10 +104,9 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
       const containerRect = memeRef.current.getBoundingClientRect();
       const newX = e.clientX - containerRect.left - dragOffset.x;
       const newY = e.clientY - containerRect.top - dragOffset.y;
-
       // Apply boundaries
-      if (newY < -150 || newY > 150) return;
-      if (newX < -150 || newX > 150) return;
+      if (newY < topHeightBoundary || newY > bottomHeightBoundary) return;
+      if (newX < leftWidthBoundary || newX > rightWidthBoundary) return;
 
       // Update local state immediately for smooth UI
       if (draggingText === "top") {
@@ -113,7 +118,7 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
       // Debounced update to Redux
       debouncedUpdatePosition(draggingText, newX, newY);
     },
-    [draggingText, memeRef, dragOffset, debouncedUpdatePosition]
+    [draggingText, memeRef, dragOffset.x, dragOffset.y, topHeightBoundary, bottomHeightBoundary, leftWidthBoundary, rightWidthBoundary, debouncedUpdatePosition]
   );
 
   const handleMouseUp = useCallback(() => {
@@ -230,6 +235,7 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
 
   // Handle image load to update canvas size
   const handleImageLoad = () => {
+    dispatch(resetMemeText())
     updateCanvasSize();
   };
 
