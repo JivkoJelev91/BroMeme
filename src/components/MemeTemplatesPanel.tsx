@@ -327,17 +327,21 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
                 </TemplateCard>
               ))
             ) : (
-              <NoResults>
-                {isFavorites ? (
-                  <div>
-                    You haven't added any favorites yet.
-                    <br />
-                    Click the heart icon on memes to add them to your favorites.
-                  </div>
-                ) : (
-                  <div>No templates found for {category} category.</div>
-                )}
-              </NoResults>
+             <NoResults>
+              <EmptyStateIcon>🔍</EmptyStateIcon>
+              <EmptyStateTitle>No templates found</EmptyStateTitle>
+              <EmptyStateMessage>
+                We couldn't find any memes in the <CategoryBadge>{getCategoryTitle().toLowerCase()}</CategoryBadge> category.
+              </EmptyStateMessage>
+              <EmptyStateActions>
+                <EmptyStateButton onClick={() => dispatch(setActiveTab('all'))}>
+                  Browse all memes
+                </EmptyStateButton>
+                <EmptyStateLink onClick={() => fetchTemplates(currentPage)}>
+                  Try again
+                </EmptyStateLink>
+              </EmptyStateActions>
+            </NoResults>
             )}
           </TemplatesGrid>
           
@@ -545,16 +549,6 @@ const FavoriteButton = styled.button<{ $isFavorite?: boolean }>`
   }
 `;
 
-const NoResults = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  text-align: center;
-  color: ${({ theme }) => theme.colors.text.secondary};
-  padding: 2rem;
-`;
 
 const LoadingContainer = styled.div`
   display: flex;
@@ -778,6 +772,84 @@ const PageEllipsis = styled.span`
   height: 36px;
   color: ${({ theme }) => theme.colors.text.secondary};
   margin: 0 0.1rem;
+`;
+
+const NoResults = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
+  color: ${({ theme }) => theme.colors.text.secondary};
+  padding: 2rem;
+  grid-column: 1 / -1;
+`;
+
+const EmptyStateIcon = styled.div`
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.8;
+`;
+
+const EmptyStateTitle = styled.h3`
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem;
+  color: ${({ theme }) => theme.colors.text.primary};
+`;
+
+const EmptyStateMessage = styled.div`
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+  max-width: 300px;
+`;
+
+const CategoryBadge = styled.span`
+  background: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.text.primary};
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 500;
+  display: inline-block;
+`;
+
+const EmptyStateActions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+`;
+
+const EmptyStateButton = styled.button`
+  background: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: ${({ theme }) => theme.colors.primaryHover || theme.colors.primary};
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+`;
+
+const EmptyStateLink = styled.button`
+  background: transparent;
+  color: ${({ theme }) => theme.colors.text.secondary};
+  border: none;
+  padding: 0.4rem;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9rem;
+  
+  &:hover {
+    color: ${({ theme }) => theme.colors.text.primary};
+  }
 `;
 
 export default MemeTemplatesPanel;
