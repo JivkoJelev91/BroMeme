@@ -17,12 +17,16 @@ const RecentMemes: React.FC = () => {
         setIsLoading(true);
         setError(null);
         
+        // Determine limit based on screen width
+        const isMobile = window.innerWidth <= 768;
+        const limit = isMobile ? 6 : 5;
+        
         // Fetch memes from Supabase
         const { data, error } = await supabase
           .from('meme_templates')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(5);
+          .limit(limit);
         
         if (error) throw new Error(error.message);
         
@@ -37,7 +41,17 @@ const RecentMemes: React.FC = () => {
       }
     };
     
+    // Add window resize listener to refresh when screen size changes
+    const handleResize = () => {
+      fetchHotMemes();
+    };
+    
+    window.addEventListener('resize', handleResize);
     fetchHotMemes();
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
   
   const handleSelectMeme = (meme: MemeTemplate) => {
@@ -162,17 +176,33 @@ const EmptyText = styled.div`
 `;
 
 const Container = styled.div`
+  position: relative;
   background: ${({ theme }) => theme.colors.cardBackground};
   border-radius: 0.5rem;
   padding: 1.25rem;
   box-shadow: 0 2px 6px ${({ theme }) => theme.colors.shadow};
+  width: 100%;
+  margin-bottom: 1.5rem;
+  overflow: visible;
+  z-index: 1;
+  
+  @media (max-width: a576px) {
+    padding: 1rem;
+  }
 `;
 
 const HeaderRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.divider};
+  padding-bottom: 0.75rem;
+  
+  @media (max-width: 480px) {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+  }
 `;
 
 const Title = styled.h2`
@@ -180,6 +210,11 @@ const Title = styled.h2`
   font-weight: 600;
   margin: 0;
   color: ${({ theme }) => theme.colors.text.primary};
+  letter-spacing: -0.5px;
+  
+  @media (max-width: 480px) {
+    font-size: 1.25rem;
+  }
 `;
 
 const ViewAllLink = styled.a`
@@ -197,6 +232,15 @@ const MemeGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 1rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(3, 1fr); /* Show 3 memes per row on tablet */
+  }
+  
+  @media (max-width: 576px) {
+    grid-template-columns: repeat(2, 1fr); /* Show 2 memes per row on mobile */
+    gap: 0.75rem; /* Smaller gap on mobile */
+  }
 `;
 
 const MemeCard = styled.div`

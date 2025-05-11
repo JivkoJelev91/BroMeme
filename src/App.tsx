@@ -27,6 +27,9 @@ const Content = styled.main`
   
   @media (max-width: 600px) {
     padding: 0.5rem;
+  & > *:last-child {
+      margin-top: 5rem;
+    }
   }
 `;
 
