@@ -6,10 +6,15 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
    base: './', // Use relative pat
+     publicDir: 'public', // Ensure public directory is properly set
    build: {
     outDir: 'dist',
     // Ensure source maps are generated
-    sourcemap: true
+    sourcemap: true,
+      // Ensure assets are properly copied
+    assetsDir: 'assets',
+    // Copy files from public directory to build output
+    copyPublicDir: true,
   },
   resolve: {
     alias: {
