@@ -41,28 +41,39 @@ const TextPanel: React.FC<TextPanelProps> = ({ handleImageUpload }) => {
 
   const handleResetText = () => {
     // Reset all text settings to default values
-    dispatch(setTopText(''));
-    dispatch(setBottomText(''));
+    dispatch(setTopText('')); // Set default text instead of empty string
+    dispatch(setBottomText('')); // Set default text instead of empty string
+    
     dispatch(setTopFontSize(32));
     dispatch(setBottomFontSize(32));
     dispatch(setTopFontFamily('Impact'));
     dispatch(setBottomFontFamily('Impact'));
     dispatch(setTopTextAlign('center'));
     dispatch(setBottomTextAlign('center'));
-    dispatch(
-      updateTextPosition({
-        position: "top",
-        x: 0,
-        y: -145,
-      })
-    );
-    dispatch(
-      updateTextPosition({
-        position: "bottom",
-        x: 0,
-        y: 145,
-      })
-    );
+    
+    // Wait a tiny bit to ensure memeRef is updated
+    setTimeout(() => {
+      // Get reference to the meme container
+      const memeContainer = document.querySelector('.MemeCard') || document.getElementById('meme-preview-container');
+      
+      if (memeContainer) {
+        const rect = memeContainer.getBoundingClientRect();
+        
+        // Set top text to top of image
+        dispatch(updateTextPosition({
+          position: "top",
+          x: Math.max(0, (rect.width - 300) / 2),
+          y: 5 // 5px from top
+        }));
+        
+        // Set bottom text to bottom of image
+        dispatch(updateTextPosition({
+          position: "bottom",
+          x: Math.max(0, (rect.width - 300) / 2),
+          y: rect.height - 50 // 50px from bottom
+        }));
+      }
+    }, 10);
   };
 
   // Create a wrapper for the handleImageUpload function

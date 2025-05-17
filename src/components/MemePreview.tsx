@@ -1,11 +1,11 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+ 
+ 
 import React, { RefObject, useRef, useState, useEffect, useCallback } from "react";
 import styled, { css } from "styled-components";
 import { addStroke, updateTextPosition } from "../redux";
 import { RootState, useAppSelector, useAppDispatch } from "../redux/store";
 import ResponsiveText from "./ResponsiveText";
 import debounce from "lodash/debounce";
-import { resetMemeText } from "src/redux/slices/memeSlice";
 
 // Component
 interface MemePreviewProps {
@@ -55,17 +55,6 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
   // Add local state for smoother dragging
   const [localTopPosition, setLocalTopPosition] = useState({ x: 0, y: 0 });
   const [localBottomPosition, setLocalBottomPosition] = useState({ x: 0, y: 0 });
-  const height = memeRef.current?.offsetHeight || 0;
-  const width = memeRef.current?.offsetWidth || 0;
-  const topHeightBoundary = -(height / 2) + 20;
-  const bottomHeightBoundary = height / 2 - 20;
-  const leftWidthBoundary = -(width / 2) + 52;
-  const rightWidthBoundary = (width / 2) - 52;
-
-  useEffect(() => {
-    dispatch(updateTextPosition({ position: 'top', x: 0, y:topHeightBoundary }));
-    dispatch(updateTextPosition({ position: 'bottom', x: 0, y:bottomHeightBoundary}));
-  }, [bottomHeightBoundary, dispatch, height, topHeightBoundary])
 
   // Sync local positions with redux when not dragging
   useEffect(() => {
@@ -101,24 +90,37 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
     (e: MouseEvent) => {
       if (!draggingText || !memeRef.current) return;
 
-      const containerRect = memeRef.current.getBoundingClientRect();
-      const newX = e.clientX - containerRect.left - dragOffset.x;
-      const newY = e.clientY - containerRect.top - dragOffset.y;
-      // Apply boundaries
-      if (newY < topHeightBoundary || newY > bottomHeightBoundary) return;
-      if (newX < leftWidthBoundary || newX > rightWidthBoundary) return;
-
+      const memeRect = memeRef.current.getBoundingClientRect();
+      const textRef = draggingText === "top" ? topTextRef : bottomTextRef;
+      
+      if (!textRef.current) return;
+      
+      const textRect = textRef.current.getBoundingClientRect();
+      
+      // Calculate new position by subtracting the drag offset from mouse position
+      const newX = e.clientX - memeRect.left - dragOffset.x;
+      const newY = e.clientY - memeRect.top - dragOffset.y;
+      
+      // Calculate boundaries
+      const padding = 5;
+      const maxX = memeRect.width - textRect.width + padding;
+      const maxY = memeRect.height - textRect.height + padding;
+      
+      // Constrain the position
+      const constrainedX = Math.max(0, Math.min(maxX, newX));
+      const constrainedY = Math.max(0, Math.min(maxY, newY));
+      
       // Update local state immediately for smooth UI
       if (draggingText === "top") {
-        setLocalTopPosition({ x: newX, y: newY });
+        setLocalTopPosition({ x: constrainedX, y: constrainedY });
       } else {
-        setLocalBottomPosition({ x: newX, y: newY });
+        setLocalBottomPosition({ x: constrainedX, y: constrainedY });
       }
-
-      // Debounced update to Redux
-      debouncedUpdatePosition(draggingText, newX, newY);
+      
+      // Update Redux (debounced)
+      debouncedUpdatePosition(draggingText, constrainedX, constrainedY);
     },
-    [draggingText, memeRef, dragOffset.x, dragOffset.y, topHeightBoundary, bottomHeightBoundary, leftWidthBoundary, rightWidthBoundary, debouncedUpdatePosition]
+    [draggingText, memeRef, dragOffset, topTextRef, bottomTextRef, debouncedUpdatePosition]
   );
 
   const handleMouseUp = useCallback(() => {
@@ -156,30 +158,47 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
   // Add this useEffect to set initial text positions when image loads
   useEffect(() => {
     if (memeRef.current && memeImage) {
+      // Get the dimensions only once when the image loads
       const memeCardRect = memeRef.current.getBoundingClientRect();
 
-      // If text positions are at default (0,0), set better initial positions
+      // Set initial position for top text (centered horizontally at the top)
       if (topTextPosition.x === 0 && topTextPosition.y === 0) {
-        dispatch(
-          updateTextPosition({
-            position: "top",
-            x: memeCardRect.width / 2 - 100, // Center horizontally with offset
-            y: 20, // Near top
-          })
-        );
+        const initialTopX = Math.max(0, (memeCardRect.width - 300) / 2);
+        const initialTopY = 20; // 20px from the top
+        
+        // Update Redux state AND local state
+        dispatch(updateTextPosition({
+          position: "top",
+          x: initialTopX,
+          y: initialTopY
+        }));
+        
+        setLocalTopPosition({ x: initialTopX, y: initialTopY });
+        
+        // Log for debugging
+        console.log("Setting top text initial position:", initialTopX, initialTopY);
       }
 
+      // Set initial position for bottom text (centered horizontally at the bottom)
       if (bottomTextPosition.x === 0 && bottomTextPosition.y === 0) {
-        dispatch(
-          updateTextPosition({
-            position: "bottom",
-            x: memeCardRect.width / 2 - 100, // Center horizontally with offset
-            y: memeCardRect.height - 60, // Near bottom
-          })
-        );
+        const initialBottomX = Math.max(0, (memeCardRect.width - 300) / 2);
+        // Calculate position from top of container, not from center
+        const initialBottomY = memeCardRect.height - 80; // 80px from the bottom
+        
+        // Update Redux state AND local state
+        dispatch(updateTextPosition({
+          position: "bottom",
+          x: initialBottomX,
+          y: initialBottomY
+        }));
+        
+        setLocalBottomPosition({ x: initialBottomX, y: initialBottomY });
+        
+        // Log for debugging
+        console.log("Setting bottom text initial position:", initialBottomX, initialBottomY);
       }
     }
-  }, [memeImage, dispatch, topTextPosition, bottomTextPosition, memeRef]);
+  }, [memeImage]); // Only depend on memeImage to run once when image loads
 
   // Function to draw all strokes
   const drawAllStrokes = () => {
@@ -235,8 +254,40 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
 
   // Handle image load to update canvas size
   const handleImageLoad = () => {
-    dispatch(resetMemeText())
     updateCanvasSize();
+    
+    // Wait for image to fully load and get proper dimensions
+    setTimeout(() => {
+      if (memeRef.current) {
+        const memeCardRect = memeRef.current.getBoundingClientRect();
+        
+        // Force positioning of both texts
+        const initialTopX = Math.max(0, (memeCardRect.width - 300) / 2);
+        const initialTopY = 5; // Moved to just 5px from the top (was 10px)
+        
+        const initialBottomX = Math.max(0, (memeCardRect.width - 300) / 2); 
+        const initialBottomY = memeCardRect.height - 50; // 50px from bottom
+        
+        console.log("Image loaded - forcing text positions:", memeCardRect.width, memeCardRect.height);
+        
+        // Update positions in Redux
+        dispatch(updateTextPosition({
+          position: "top",
+          x: initialTopX,
+          y: initialTopY
+        }));
+        
+        dispatch(updateTextPosition({
+          position: "bottom",
+          x: initialBottomX,
+          y: initialBottomY
+        }));
+        
+        // Update local state
+        setLocalTopPosition({ x: initialTopX, y: initialTopY });
+        setLocalBottomPosition({ x: initialBottomX, y: initialBottomY });
+      }
+    }, 100); // Small delay to ensure image dimensions are available
   };
 
   // Drawing functions
@@ -321,20 +372,18 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
 
     // Set which text is being dragged
     setDraggingText(position);
-
-    // Get the current text position from Redux
-    const currentPosition =
-      position === "top" ? topTextPosition : bottomTextPosition;
-
-    // Get mouse position relative to the meme card
-    const memeCardRect = memeRef.current?.getBoundingClientRect();
-
-    if (memeCardRect) {
-      // Calculate the initial mouse offset from the text element's top-left corner
-      const mouseOffsetX = e.clientX - memeCardRect.left - currentPosition.x;
-      const mouseOffsetY = e.clientY - memeCardRect.top - currentPosition.y;
-
-      setDragOffset({ x: mouseOffsetX, y: mouseOffsetY });
+    
+    // Reference the correct text element and get the current mouse position
+    const textElement = position === "top" ? topTextRef.current : bottomTextRef.current;
+    
+    if (textElement && memeRef.current) {
+      const textRect = textElement.getBoundingClientRect();
+      
+      // Calculate the offset from the mouse cursor to the top-left corner of the text element
+      const offsetX = e.clientX - textRect.left;
+      const offsetY = e.clientY - textRect.top;
+      
+      setDragOffset({ x: offsetX, y: offsetY });
     }
   };
 
@@ -363,19 +412,12 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                 onMouseLeave={finishDrawing}
                 $isDrawPanelActive={activeTab === "draw"}
               />
-              {topText && (
+              {(topText !== undefined && topText !== '') && (
                 <MemeTextContainer
                   ref={topTextRef}
                   style={{
-                    transform: `translate(${
-                      draggingText === "top"
-                        ? localTopPosition.x
-                        : topTextPosition.x
-                    }px, ${
-                      draggingText === "top"
-                        ? localTopPosition.y
-                        : topTextPosition.y
-                    }px)`,
+                    top: `${draggingText === "top" ? localTopPosition.y : topTextPosition.y}px`,
+                    left: `${draggingText === "top" ? localTopPosition.x : topTextPosition.x}px`,
                     cursor: isTextDraggable ? "move" : "default",
                   }}
                   onMouseDown={(e) => handleTextMouseDown(e, "top")}
@@ -407,19 +449,12 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                   {isTextDraggable && <DragHandle>⇄</DragHandle>}
                 </MemeTextContainer>
               )}
-              {bottomText && (
+              {(bottomText !== undefined && bottomText !== '') && (
                 <MemeTextContainer
                   ref={bottomTextRef}
                   style={{
-                    transform: `translate(${
-                      draggingText === "bottom"
-                        ? localBottomPosition.x
-                        : bottomTextPosition.x
-                    }px, ${
-                      draggingText === "bottom"
-                        ? localBottomPosition.y
-                        : bottomTextPosition.y
-                    }px)`,
+                    top: `${draggingText === "bottom" ? localBottomPosition.y : bottomTextPosition.y}px`,
+                    left: `${draggingText === "bottom" ? localBottomPosition.x : bottomTextPosition.x}px`,
                     cursor: isTextDraggable ? "move" : "default",
                   }}
                   onMouseDown={(e) => handleTextMouseDown(e, "bottom")}
@@ -516,7 +551,6 @@ const MemeContainer = styled.div`
 const MemeCard = styled.div`
   width: 100%;
   max-width: 450px;
-  min-height: 320px;
   height: auto;
   background: ${({ theme }) => theme.colors.cardBackground};
   border-radius: 4px;
@@ -558,12 +592,7 @@ const MemeTextContainer = styled.div<{
   padding: 5px;
   border-radius: 4px;
   user-select: none;
-
-  /* This ensures container grows with content height */
   display: inline-block;
-
-  /* Add these styles for better alignment */
-  transform-origin: center center;
 
   ${(props) =>
     props.$isDragging &&
@@ -627,17 +656,11 @@ const MemeText = styled.div<{
           text-shadow: none;
         `}
   text-transform: uppercase;
-
-  /* These are crucial for proper text wrapping */
   white-space: pre-line; /* Preserves newlines but collapses whitespace */
   word-break: break-word; /* Allows breaking at any character if needed */
   overflow-wrap: break-word; /* Modern property for word wrapping */
   max-width: 400px; /* Fixed width to control line breaks */
-
-  /* Add line height to ensure consistent spacing */
   line-height: 1.2;
-
-  /* This fixes vertical alignment */
   margin: 0;
   padding: 0 5px;
 `;
