@@ -18,6 +18,17 @@ export const uploadMemeTemplate = async (
   userId: string | undefined
 ): Promise<MemeTemplate | null> => {
   try {
+    // Validate file size
+    if (file.size > 4 * 1024 * 1024) { // 4MB limit
+      throw new Error('File size exceeds 5MB limit');
+    }
+    
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      throw new Error('Unsupported file type. Please upload JPEG, PNG, GIF or WEBP');
+    }
+    
     // 1. Upload image to Supabase storage
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;

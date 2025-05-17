@@ -43,8 +43,6 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
     setError(null);
     
     try {
-      console.log(`Fetching templates for ${isFavorites ? 'favorites' : `category: ${category}`}, page ${page}`);
-      
       const from = (page - 1) * ITEMS_PER_PAGE;
       const to = from + ITEMS_PER_PAGE - 1;
       

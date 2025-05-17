@@ -101,7 +101,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
 // Styled components
 const ControlsContainer = styled.div`
-  flex: 0 0 40%;
+  flex: 0 0 45%;
   border-left: 1px solid ${({ theme }) => theme.colors.border.light};
   position: relative;
   height: 400px; /* Match MemeCard height */

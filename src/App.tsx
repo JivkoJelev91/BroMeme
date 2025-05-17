@@ -65,7 +65,6 @@ function App() {
     // Check initial session
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
-      console.log('Initial session check:', data.session);
       if (data?.session) {
         dispatch(setUser(data.session.user));
       }
@@ -75,10 +74,8 @@ function App() {
     
     // Set up auth listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state changed:', event, session);
+      (_, session) => {
         if (session) {
-          console.log('User logged in:', session.user);
           dispatch(setUser(session.user));
         } else {
           console.log('User logged out');

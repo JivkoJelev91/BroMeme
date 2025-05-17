@@ -7,7 +7,8 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 // Validate environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables. Check your .env file.');
-  // You could also throw an error here to prevent the app from starting
+  // Prevent app from initializing with missing configuration
+  throw new Error('Application cannot start: Missing required configuration');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {

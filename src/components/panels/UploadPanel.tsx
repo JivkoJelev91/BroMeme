@@ -96,7 +96,23 @@ const UploadPanel: React.FC = () => {
       
       setSuccess(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      // Map backend errors to user-friendly messages
+      const getUserFriendlyError = (err: unknown): string => {
+        if (err instanceof Error) {
+          // Map specific error messages to user-friendly versions
+          if (err.message.includes('storage/object-too-large')) {
+            return 'The image is too large. Please use a smaller file.';
+          }
+          if (err.message.includes('permission denied')) {
+            return 'You do not have permission to upload files.';
+          }
+          // Add more mappings as needed
+        }
+        // Default generic message
+        return 'There was a problem uploading your image. Please try again.';
+      };
+
+      setError(getUserFriendlyError(err));
     } finally {
       setIsUploading(false);
     }

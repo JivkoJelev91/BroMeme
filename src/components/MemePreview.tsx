@@ -480,7 +480,7 @@ const PreviewContainer = styled.div`
   flex: 1;
 
   @media (min-width: 768px) {
-    max-width: 60%;
+    max-width: 55%;
   }
 `;
 
@@ -531,6 +531,7 @@ const MemeCard = styled.div`
 
 const MemeImage = styled.img<{ $blur: boolean; $grayscale: boolean }>`
   display: block;
+  max-width: 450px;
   width: 100%;
   height: 100%;
   object-fit: contain;

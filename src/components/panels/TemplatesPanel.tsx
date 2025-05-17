@@ -40,7 +40,6 @@ const TemplatesPanel: React.FC<TemplatesPanelProps> = ({ category = 'popular' })
           fetchedTemplates = await getMemeTemplatesByCategory(category);
         }
         
-        console.log(`Fetched ${fetchedTemplates.length} templates for category: ${category}`, fetchedTemplates);
         setTemplates(fetchedTemplates);
       } catch (err) {
         console.error(`Error fetching templates for category ${category}:`, err);

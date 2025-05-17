@@ -9,8 +9,8 @@ export default defineConfig({
      publicDir: 'public', // Ensure public directory is properly set
    build: {
     outDir: 'dist',
-    // Ensure source maps are generated
-    sourcemap: true,
+    // Conditionally generate source maps
+    sourcemap: process.env.NODE_ENV !== 'production',
       // Ensure assets are properly copied
     assetsDir: 'assets',
     // Copy files from public directory to build output
