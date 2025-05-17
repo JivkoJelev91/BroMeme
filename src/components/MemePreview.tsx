@@ -516,6 +516,7 @@ const MemeContainer = styled.div`
 const MemeCard = styled.div`
   width: 100%;
   max-width: 450px;
+  min-height: 320px;
   height: auto;
   background: ${({ theme }) => theme.colors.cardBackground};
   border-radius: 4px;
