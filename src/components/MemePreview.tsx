@@ -1,5 +1,3 @@
- 
- 
 import React, { RefObject, useRef, useState, useEffect, useCallback } from "react";
 import styled, { css } from "styled-components";
 import { addStroke, updateTextPosition } from "../redux";
@@ -43,6 +41,7 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
     Array<{ x: number; y: number }>
   >([]);
   const imgRef = useRef<HTMLImageElement>(null);
+  const [memeContainerWidth, setMemeContainerWidth] = useState<number>(450); // Store exact container width
 
   // For text dragging
   const [draggingText, setDraggingText] = useState<"top" | "bottom" | null>(
@@ -75,17 +74,70 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
   const isDrawPanelActive = activeTab === "draw";
   const isTextDraggable = activeTab === "text";
 
+    // Function to draw all strokes - using useCallback to prevent unnecessary rerenders
+  const drawAllStrokes = useCallback(() => {
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Clear canvas first
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw all saved strokes
+    strokes.forEach(
+      (stroke: {
+        path: Array<{ x: number; y: number }>;
+        color: string;
+        width: number;
+      }) => {
+        if (stroke.path.length < 2) return;
+
+        ctx.beginPath();
+        ctx.moveTo(stroke.path[0].x, stroke.path[0].y);
+
+        for (let i = 1; i < stroke.path.length; i++) {
+          ctx.lineTo(stroke.path[i].x, stroke.path[i].y);
+        }
+
+        ctx.strokeStyle = stroke.color;
+        ctx.lineWidth = stroke.width;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.stroke();
+      }
+    );
+  }, [strokes]);
+
+  // Update canvas size based on the displayed image - using useCallback for optimization
+  const updateCanvasSize = useCallback(() => {
+    if (canvasRef.current && imgRef.current) {
+      const canvas = canvasRef.current;
+      const img = imgRef.current;
+
+      // Get the actual image dimensions instead of the element dimensions
+      const rect = img.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      
+      // Update the meme container width for text scaling
+      setMemeContainerWidth(rect.width);
+
+      // Clear canvas and redraw strokes with the new size
+      drawAllStrokes();
+    }
+  }, [drawAllStrokes, setMemeContainerWidth]);
   // Initialize canvas size when the component mounts or when the image changes
   useEffect(() => {
     updateCanvasSize();
-  }, [memeImage]);
-
+  }, [memeImage, updateCanvasSize]);
   // Redraw all strokes whenever strokes array changes
   useEffect(() => {
     drawAllStrokes();
-  }, [strokes]);
-
+  }, [strokes, drawAllStrokes]);
   // Handle mouse movement with immediate local updates and debounced Redux updates
+  // Accounts for the transform: translateX(-50%) in the MemeTextContainer
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!draggingText || !memeRef.current) return;
@@ -95,20 +147,34 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
       
       if (!textRef.current) return;
       
-      const textRect = textRef.current.getBoundingClientRect();
+      // Get mouse position relative to the meme container
+      const mouseX = e.clientX - memeRect.left;
+      const mouseY = e.clientY - memeRect.top;
       
-      // Calculate new position by subtracting the drag offset from mouse position
-      const newX = e.clientX - memeRect.left - dragOffset.x;
-      const newY = e.clientY - memeRect.top - dragOffset.y;
+      // Since our text container has transform: translateX(-50%),
+      // we want the X position to be the center point of the text
+      const newX = mouseX;  // The actual center point
+      const newY = mouseY - dragOffset.y; // Y position calculation remains the same
       
-      // Calculate boundaries
-      const padding = 5;
-      const maxX = memeRect.width - textRect.width + padding;
-      const maxY = memeRect.height - textRect.height + padding;
+      // Calculate boundaries with less restrictive constraints
+      const padding = 2; // Further reduced padding to allow text closer to edges
       
-      // Constrain the position
-      const constrainedX = Math.max(0, Math.min(maxX, newX));
-      const constrainedY = Math.max(0, Math.min(maxY, newY));
+      // Get text width for more accurate boundary calculation
+      const textWidth = textRef.current.offsetWidth;
+      const textHeight = textRef.current.offsetHeight;
+      
+      // Minimum positions - keep text within bounds
+      const minX = Math.max(textWidth / 2, padding); // Don't let text go off left edge
+      const minY = padding;
+        // Maximum positions - keep text within bounds
+      // For right boundary, account for text width since we're using transform: translateX(-50%)
+      const maxX = memeRect.width - (textWidth / 2) - padding; // Adjust for center position
+      const maxY = memeRect.height - textHeight - padding - 20; // Add extra bottom margin to keep text from being too close to edge
+      
+      // For X, constrain text center position within the viable area
+      const constrainedX = Math.max(minX, Math.min(maxX, newX));
+      // For Y, constrain text top position within the viable area
+      const constrainedY = Math.max(minY, Math.min(maxY, newY));
       
       // Update local state immediately for smooth UI
       if (draggingText === "top") {
@@ -153,20 +219,24 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
       document.removeEventListener("mouseup", handleMouseUp);
       debouncedUpdatePosition.cancel();
     };
-  }, [draggingText, handleMouseMove, handleMouseUp, debouncedUpdatePosition]);
-
-  // Add this useEffect to set initial text positions when image loads
+  }, [draggingText, handleMouseMove, handleMouseUp, debouncedUpdatePosition]);  // We'll use handleImageLoad for setting positions consistently,
+  // but keep this as a fallback for when positions need reset
   useEffect(() => {
-    if (memeRef.current && memeImage) {
-      // Get the dimensions only once when the image loads
+    if (memeRef.current && memeImage && 
+        (topTextPosition.x === 0 && topTextPosition.y === 0) || 
+        (bottomTextPosition.x === 0 && bottomTextPosition.y === 0)) {
+      
+      // This is a fallback initialization for text positions
       const memeCardRect = memeRef.current.getBoundingClientRect();
+      
+      // Set the meme container width for use with ResponsiveText
+      setMemeContainerWidth(memeCardRect.width);
 
-      // Set initial position for top text (centered horizontally at the top)
       if (topTextPosition.x === 0 && topTextPosition.y === 0) {
-        const initialTopX = Math.max(0, (memeCardRect.width - 300) / 2);
-        const initialTopY = 20; // 20px from the top
+        // Center horizontally with transform: translateX(-50%) approach
+        const initialTopX = memeCardRect.width / 2;
+        const initialTopY = 5; // Only 5px from the top for more space
         
-        // Update Redux state AND local state
         dispatch(updateTextPosition({
           position: "top",
           x: initialTopX,
@@ -174,18 +244,11 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
         }));
         
         setLocalTopPosition({ x: initialTopX, y: initialTopY });
+      }      if (bottomTextPosition.x === 0 && bottomTextPosition.y === 0) {
+        // Center horizontally with transform: translateX(-50%) approach
+        const initialBottomX = memeCardRect.width / 2;
+        const initialBottomY = memeCardRect.height - 60; // 60px from bottom for better visibility
         
-        // Log for debugging
-        console.log("Setting top text initial position:", initialTopX, initialTopY);
-      }
-
-      // Set initial position for bottom text (centered horizontally at the bottom)
-      if (bottomTextPosition.x === 0 && bottomTextPosition.y === 0) {
-        const initialBottomX = Math.max(0, (memeCardRect.width - 300) / 2);
-        // Calculate position from top of container, not from center
-        const initialBottomY = memeCardRect.height - 80; // 80px from the bottom
-        
-        // Update Redux state AND local state
         dispatch(updateTextPosition({
           position: "bottom",
           x: initialBottomX,
@@ -193,66 +256,10 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
         }));
         
         setLocalBottomPosition({ x: initialBottomX, y: initialBottomY });
-        
-        // Log for debugging
-        console.log("Setting bottom text initial position:", initialBottomX, initialBottomY);
       }
     }
-  }, [memeImage]); // Only depend on memeImage to run once when image loads
-
-  // Function to draw all strokes
-  const drawAllStrokes = () => {
-    if (!canvasRef.current) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Clear canvas first
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw all saved strokes
-    strokes.forEach(
-      (stroke: {
-        path: Array<{ x: number; y: number }>;
-        color: string;
-        width: number;
-      }) => {
-        if (stroke.path.length < 2) return;
-
-        ctx.beginPath();
-        ctx.moveTo(stroke.path[0].x, stroke.path[0].y);
-
-        for (let i = 1; i < stroke.path.length; i++) {
-          ctx.lineTo(stroke.path[i].x, stroke.path[i].y);
-        }
-
-        ctx.strokeStyle = stroke.color;
-        ctx.lineWidth = stroke.width;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.stroke();
-      }
-    );
-  };
-
-  // Update canvas size based on the displayed image
-  const updateCanvasSize = () => {
-    if (canvasRef.current && imgRef.current) {
-      const canvas = canvasRef.current;
-      const img = imgRef.current;
-
-      // Get the actual image dimensions instead of the element dimensions
-      const rect = img.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-
-      // Clear canvas and redraw strokes with the new size
-      drawAllStrokes();
-    }
-  };
-
-  // Handle image load to update canvas size
+  }, [memeImage, topTextPosition.x, topTextPosition.y, bottomTextPosition.x, bottomTextPosition.y, memeRef, dispatch, setLocalTopPosition, setLocalBottomPosition]);
+  // Handle image load to update canvas size and text positioning
   const handleImageLoad = () => {
     updateCanvasSize();
     
@@ -261,14 +268,16 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
       if (memeRef.current) {
         const memeCardRect = memeRef.current.getBoundingClientRect();
         
-        // Force positioning of both texts
-        const initialTopX = Math.max(0, (memeCardRect.width - 300) / 2);
-        const initialTopY = 5; // Moved to just 5px from the top (was 10px)
+        // Update the meme container width
+        setMemeContainerWidth(memeCardRect.width);
+          
+        // Set positions for top and bottom text, centered horizontally
+        // Since we're using transform: translateX(-50%), setting left to 50% will center the text
+        const initialTopX = memeCardRect.width / 2; // Center horizontally
+        const initialTopY = 5; // Only 5px from the top for more space
         
-        const initialBottomX = Math.max(0, (memeCardRect.width - 300) / 2); 
-        const initialBottomY = memeCardRect.height - 50; // 50px from bottom
-        
-        console.log("Image loaded - forcing text positions:", memeCardRect.width, memeCardRect.height);
+        const initialBottomX = memeCardRect.width / 2; // Center horizontally
+        const initialBottomY = memeCardRect.height - 60; // Increase to 60px from bottom for more space
         
         // Update positions in Redux
         dispatch(updateTextPosition({
@@ -283,7 +292,7 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
           y: initialBottomY
         }));
         
-        // Update local state
+        // Update local state for immediate UI update
         setLocalTopPosition({ x: initialTopX, y: initialTopY });
         setLocalBottomPosition({ x: initialBottomX, y: initialBottomY });
       }
@@ -359,8 +368,7 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
       setCurrentPath([]);
     }
   };
-
-  // Start dragging
+  // Start dragging - updated to handle centered text with transform: translateX(-50%)
   const handleTextMouseDown = (
     e: React.MouseEvent,
     position: "top" | "bottom"
@@ -373,17 +381,17 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
     // Set which text is being dragged
     setDraggingText(position);
     
-    // Reference the correct text element and get the current mouse position
+    // For the Y offset only - we don't use X offset with transform: translateX(-50%)
     const textElement = position === "top" ? topTextRef.current : bottomTextRef.current;
     
     if (textElement && memeRef.current) {
       const textRect = textElement.getBoundingClientRect();
       
-      // Calculate the offset from the mouse cursor to the top-left corner of the text element
-      const offsetX = e.clientX - textRect.left;
+      // We only need the Y offset since X is centered
       const offsetY = e.clientY - textRect.top;
       
-      setDragOffset({ x: offsetX, y: offsetY });
+      // Set x offset to 0 since we're centering using transform: translateX(-50%)
+      setDragOffset({ x: 0, y: offsetY });
     }
   };
 
@@ -411,14 +419,14 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                 onMouseUp={finishDrawing}
                 onMouseLeave={finishDrawing}
                 $isDrawPanelActive={activeTab === "draw"}
-              />
-              {(topText !== undefined && topText !== '') && (
+              />              {(topText !== undefined && topText !== '') && (
                 <MemeTextContainer
                   ref={topTextRef}
                   style={{
                     top: `${draggingText === "top" ? localTopPosition.y : topTextPosition.y}px`,
                     left: `${draggingText === "top" ? localTopPosition.x : topTextPosition.x}px`,
                     cursor: isTextDraggable ? "move" : "default",
+                    width: "auto", // Let content determine width
                   }}
                   onMouseDown={(e) => handleTextMouseDown(e, "top")}
                   $isDragging={draggingText === "top"}
@@ -428,7 +436,7 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                     <ResponsiveText
                       text={topText}
                       fontSize={topFontSize}
-                      containerWidth={memeRef.current?.offsetWidth || 400}
+                      containerWidth={memeContainerWidth} // Use the actual measured container width
                       bold={bold}
                       shadow={shadow}
                       fontFamily={topFontFamily}
@@ -448,14 +456,14 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                   )}
                   {isTextDraggable && <DragHandle>⇄</DragHandle>}
                 </MemeTextContainer>
-              )}
-              {(bottomText !== undefined && bottomText !== '') && (
+              )}              {(bottomText !== undefined && bottomText !== '') && (
                 <MemeTextContainer
                   ref={bottomTextRef}
                   style={{
                     top: `${draggingText === "bottom" ? localBottomPosition.y : bottomTextPosition.y}px`,
                     left: `${draggingText === "bottom" ? localBottomPosition.x : bottomTextPosition.x}px`,
                     cursor: isTextDraggable ? "move" : "default",
+                    width: "auto", // Let content determine width
                   }}
                   onMouseDown={(e) => handleTextMouseDown(e, "bottom")}
                   $isDragging={draggingText === "bottom"}
@@ -465,7 +473,7 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                     <ResponsiveText
                       text={bottomText}
                       fontSize={bottomFontSize}
-                      containerWidth={memeRef.current?.offsetWidth || 400}
+                      containerWidth={memeContainerWidth} // Use the actual measured container width
                       bold={bold}
                       shadow={shadow}
                       fontFamily={bottomFontFamily}
@@ -562,6 +570,8 @@ const MemeCard = styled.div`
   box-shadow: 0 4px 12px ${({ theme }) => theme.colors.shadow};
   aspect-ratio: auto;
   border: none;
+  box-sizing: border-box;
+  padding: 0; /* Remove any padding that might reduce inner space */
 `;
 
 const MemeImage = styled.img<{ $blur: boolean; $grayscale: boolean }>`
@@ -589,10 +599,13 @@ const MemeTextContainer = styled.div<{
 }>`
   position: absolute;
   z-index: 20;
-  padding: 5px;
+  padding: 2px;
   border-radius: 4px;
   user-select: none;
   display: inline-block;
+  transform: translateX(-50%); /* Center horizontally */
+  max-width: 98%; /* Allow text to take up almost all of the container width */
+  min-width: 40px; /* Ensure container is always visible */
 
   ${(props) =>
     props.$isDragging &&
@@ -639,7 +652,6 @@ const MemeText = styled.div<{
   text-align: ${(props) => props.textAlign || "center"};
   font-size: ${(props) => props.fontSize / 16}rem;
   font-family: ${(props) => props.fontFamily || "Impact"};
-  padding: 0 10px;
   color: #fff;
   ${({ bold }) =>
     bold &&
@@ -654,15 +666,14 @@ const MemeText = styled.div<{
         `
       : css`
           text-shadow: none;
-        `}
+        `}  
   text-transform: uppercase;
-  white-space: pre-line; /* Preserves newlines but collapses whitespace */
-  word-break: break-word; /* Allows breaking at any character if needed */
-  overflow-wrap: break-word; /* Modern property for word wrapping */
-  max-width: 400px; /* Fixed width to control line breaks */
+  white-space: nowrap; /* Keep text on a single line */
+  overflow: visible; /* Allow text to be fully visible */
+  min-width: 120px; /* Smaller minimum width */
   line-height: 1.2;
   margin: 0;
-  padding: 0 5px;
+  padding: 0 2px; /* Reduced padding */
 `;
 
 const DrawingCanvas = styled.canvas<{

@@ -55,22 +55,21 @@ const TextPanel: React.FC<TextPanelProps> = ({ handleImageUpload }) => {
     setTimeout(() => {
       // Get reference to the meme container
       const memeContainer = document.querySelector('.MemeCard') || document.getElementById('meme-preview-container');
-      
-      if (memeContainer) {
+        if (memeContainer) {
         const rect = memeContainer.getBoundingClientRect();
         
-        // Set top text to top of image
+        // Set top text to top of image - centered horizontally
         dispatch(updateTextPosition({
           position: "top",
-          x: Math.max(0, (rect.width - 300) / 2),
-          y: 5 // 5px from top
+          x: rect.width / 2, // Center horizontally (works with transform: translateX(-50%))
+          y: 5 // Only 5px from top for more space
         }));
         
-        // Set bottom text to bottom of image
+        // Set bottom text to bottom of image - centered horizontally
         dispatch(updateTextPosition({
           position: "bottom",
-          x: Math.max(0, (rect.width - 300) / 2),
-          y: rect.height - 50 // 50px from bottom
+          x: rect.width / 2, // Center horizontally (works with transform: translateX(-50%))
+          y: rect.height - 60 // Increase to 60px from bottom for more space
         }));
       }
     }, 10);

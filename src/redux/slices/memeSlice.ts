@@ -56,9 +56,8 @@ const initialState: MemeState = {
   topFontFamily: 'Impact',
   bottomFontFamily: 'Impact',
   topTextAlign: 'center',
-  bottomTextAlign: 'center',
-  topTextPosition: { x: 0, y: -145 },
-  bottomTextPosition: { x: 0, y: 145 },
+  bottomTextAlign: 'center',  topTextPosition: { x: 0, y: 10 },
+  bottomTextPosition: { x: 0, y: 0 },
 };
 
 export const memeSlice = createSlice({
