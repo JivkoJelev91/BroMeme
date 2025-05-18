@@ -24,7 +24,7 @@ This project was built in a flow state with the help of multiple AI tools — wh
 
 - 🧠 **Design** made with natural language → UI mockups and component ideas by ChatGPT  
 - 🤖 **Code** co-written with Claude 3.7 and GitHub Copilot in real time  
-- ⚡️ AI agents decided file structure, naming, and even animations  
+- ⚡️ AI agents decided the file structure, naming, and even animations  
 - 🎯 Focused purely on **user experience**, speed, and joy of creation  
 
 > "We didn’t write code. We had a conversation with the machine."  
@@ -57,6 +57,7 @@ This project was built in a flow state with the help of multiple AI tools — wh
 
 - 🤖 **AI Editor**: Automatically generate memes from prompts  
 - 🔐 **User Authentication**  
+- 👍 **Like System**: Let users like memes (separate from favorites) to help surface popular content  
 - 🌍 **Login with Other Social Media Platforms** (Facebook, Twitter, GitHub, etc.)
 
 ---
