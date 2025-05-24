@@ -31,7 +31,6 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
     bottomTextAlign,
     topTextPosition,
     bottomTextPosition,
-    useResponsiveFont,
   } = useAppSelector((state: RootState) => state.meme);
 
   const dispatch = useAppDispatch();
@@ -166,9 +165,8 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
       // Minimum positions - keep text within bounds
       const minX = Math.max(textWidth / 2, padding); // Don't let text go off left edge
       const minY = padding;
-        // Maximum positions - keep text within bounds
-      // For right boundary, account for text width since we're using transform: translateX(-50%)
-      const maxX = memeRect.width - (textWidth / 2) - padding; // Adjust for center position
+      // Maximum positions - keep text top position within the viable area
+      const maxX = memeRect.width - textWidth / 2; // Don't let text go off right edge
       const maxY = memeRect.height - textHeight - padding - 20; // Add extra bottom margin to keep text from being too close to edge
       
       // For X, constrain text center position within the viable area
@@ -225,78 +223,64 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
     if (memeRef.current && memeImage && 
         (topTextPosition.x === 0 && topTextPosition.y === 0) || 
         (bottomTextPosition.x === 0 && bottomTextPosition.y === 0)) {
-      
       // This is a fallback initialization for text positions
       const memeCardRect = memeRef.current.getBoundingClientRect();
-      
-      // Set the meme container width for use with ResponsiveText
       setMemeContainerWidth(memeCardRect.width);
-
       if (topTextPosition.x === 0 && topTextPosition.y === 0) {
-        // Center horizontally with transform: translateX(-50%) approach
         const initialTopX = memeCardRect.width / 2;
-        const initialTopY = 5; // Only 5px from the top for more space
-        
+        const initialTopY = 2;
         dispatch(updateTextPosition({
           position: "top",
           x: initialTopX,
           y: initialTopY
         }));
-        
         setLocalTopPosition({ x: initialTopX, y: initialTopY });
-      }      if (bottomTextPosition.x === 0 && bottomTextPosition.y === 0) {
-        // Center horizontally with transform: translateX(-50%) approach
+      }
+      if (bottomTextPosition.x === 0 && bottomTextPosition.y === 0) {
         const initialBottomX = memeCardRect.width / 2;
-        const initialBottomY = memeCardRect.height - 60; // 60px from bottom for better visibility
-        
+        let bottomTextHeight = 0;
+        if (bottomTextRef.current) {
+          bottomTextHeight = bottomTextRef.current.offsetHeight;
+        }
+        const initialBottomY = memeCardRect.height - bottomTextHeight - 2;
         dispatch(updateTextPosition({
           position: "bottom",
           x: initialBottomX,
           y: initialBottomY
         }));
-        
         setLocalBottomPosition({ x: initialBottomX, y: initialBottomY });
       }
     }
   }, [memeImage, topTextPosition.x, topTextPosition.y, bottomTextPosition.x, bottomTextPosition.y, memeRef, dispatch, setLocalTopPosition, setLocalBottomPosition]);
-  // Handle image load to update canvas size and text positioning
+
   const handleImageLoad = () => {
     updateCanvasSize();
-    
-    // Wait for image to fully load and get proper dimensions
     setTimeout(() => {
       if (memeRef.current) {
         const memeCardRect = memeRef.current.getBoundingClientRect();
-        
-        // Update the meme container width
         setMemeContainerWidth(memeCardRect.width);
-          
-        // Set positions for top and bottom text, centered horizontally
-        // Since we're using transform: translateX(-50%), setting left to 50% will center the text
-        const initialTopX = memeCardRect.width / 2; // Center horizontally
-        const initialTopY = 5; // Only 5px from the top for more space
-        
-        const initialBottomX = memeCardRect.width / 2; // Center horizontally
-        const initialBottomY = memeCardRect.height - 60; // Increase to 60px from bottom for more space
-        
-        // Update positions in Redux
+        const initialTopX = memeCardRect.width / 2;
+        const initialTopY = 2;
+        const initialBottomX = memeCardRect.width / 2;
+        let bottomTextHeight = 0;
+        if (bottomTextRef.current) {
+          bottomTextHeight = bottomTextRef.current.offsetHeight;
+        }
+        const initialBottomY = memeCardRect.height - bottomTextHeight - 2;
         dispatch(updateTextPosition({
           position: "top",
           x: initialTopX,
           y: initialTopY
         }));
-        
         dispatch(updateTextPosition({
           position: "bottom",
           x: initialBottomX,
           y: initialBottomY
         }));
-        
-        // Update local state for immediate UI update
         setLocalTopPosition({ x: initialTopX, y: initialTopY });
         setLocalBottomPosition({ x: initialBottomX, y: initialBottomY });
       }
-    }, 100); // Small delay to ensure image dimensions are available
+    }, 100);
   };
 
   // Drawing functions
@@ -425,72 +409,45 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                   style={{
                     top: `${draggingText === "top" ? localTopPosition.y : topTextPosition.y}px`,
                     left: `${draggingText === "top" ? localTopPosition.x : topTextPosition.x}px`,
-                    cursor: isTextDraggable ? "move" : "default",
-                    width: "auto", // Let content determine width
+                    cursor: isTextDraggable ? "move" : "default"
                   }}
                   onMouseDown={(e) => handleTextMouseDown(e, "top")}
                   $isDragging={draggingText === "top"}
                   $isEditable={isTextDraggable}
                 >
-                  {useResponsiveFont ? (
-                    <ResponsiveText
-                      text={topText}
-                      fontSize={topFontSize}
-                      containerWidth={memeContainerWidth} // Use the actual measured container width
-                      bold={bold}
-                      shadow={shadow}
-                      fontFamily={topFontFamily}
-                      textAlign={topTextAlign}
-                    />
-                  ) : (
-                    <MemeText
-                      position="top"
-                      bold={bold}
-                      shadow={shadow}
-                      fontSize={topFontSize}
-                      fontFamily={topFontFamily}
-                      textAlign={topTextAlign}
-                    >
-                      {topText}
-                    </MemeText>
-                  )}
+                  <ResponsiveText
+                    text={topText}
+                    fontSize={topFontSize}
+                    containerWidth={memeContainerWidth}
+                    bold={bold}
+                    shadow={shadow}
+                    fontFamily={topFontFamily}
+                    textAlign={topTextAlign}
+                  />
                   {isTextDraggable && <DragHandle>⇄</DragHandle>}
                 </MemeTextContainer>
               )}              {(bottomText !== undefined && bottomText !== '') && (
                 <MemeTextContainer
                   ref={bottomTextRef}
                   style={{
-                    top: `${draggingText === "bottom" ? localBottomPosition.y : bottomTextPosition.y}px`,
+                    // Use 'bottom' instead of 'top' for bottom text
+                    bottom: 2,
                     left: `${draggingText === "bottom" ? localBottomPosition.x : bottomTextPosition.x}px`,
-                    cursor: isTextDraggable ? "move" : "default",
-                    width: "auto", // Let content determine width
+                    cursor: isTextDraggable ? "move" : "default"
                   }}
                   onMouseDown={(e) => handleTextMouseDown(e, "bottom")}
                   $isDragging={draggingText === "bottom"}
                   $isEditable={isTextDraggable}
                 >
-                  {useResponsiveFont ? (
-                    <ResponsiveText
-                      text={bottomText}
-                      fontSize={bottomFontSize}
-                      containerWidth={memeContainerWidth} // Use the actual measured container width
-                      bold={bold}
-                      shadow={shadow}
-                      fontFamily={bottomFontFamily}
-                      textAlign={bottomTextAlign}
-                    />
-                  ) : (
-                    <MemeText
-                      position="bottom"
-                      bold={bold}
-                      shadow={shadow}
-                      fontSize={bottomFontSize}
-                      fontFamily={bottomFontFamily}
-                      textAlign={bottomTextAlign}
-                    >
-                      {bottomText}
-                    </MemeText>
-                  )}
+                  <ResponsiveText
+                    text={bottomText}
+                    fontSize={bottomFontSize}
+                    containerWidth={memeContainerWidth}
+                    bold={bold}
+                    shadow={shadow}
+                    fontFamily={bottomFontFamily}
+                    textAlign={bottomTextAlign}
+                  />
                   {isTextDraggable && <DragHandle>⇄</DragHandle>}
                 </MemeTextContainer>
               )}
@@ -599,13 +556,16 @@ const MemeTextContainer = styled.div<{
 }>`
   position: absolute;
   z-index: 20;
-  padding: 2px;
-  border-radius: 4px;
+  padding: 0; /* Remove all padding for true edge-to-edge */
+  border-radius: 0;
   user-select: none;
-  display: inline-block;
+  display: block;
   transform: translateX(-50%); /* Center horizontally */
-  max-width: 98%; /* Allow text to take up almost all of the container width */
-  min-width: 40px; /* Ensure container is always visible */
+  width: 100%; /* Match the image/container width exactly */
+  box-sizing: border-box;
+  left: 50%;
+  min-width: 0;
+  max-width: 100%;
 
   ${(props) =>
     props.$isDragging &&
@@ -639,41 +599,6 @@ const DragHandle = styled.div`
   ${MemeTextContainer}:hover & {
     opacity: 1;
   }
-`;
-
-const MemeText = styled.div<{
-  bold: boolean;
-  shadow: boolean;
-  position: "top" | "bottom";
-  fontSize: number;
-  fontFamily: string;
-  textAlign: string;
-}>`
-  text-align: ${(props) => props.textAlign || "center"};
-  font-size: ${(props) => props.fontSize / 16}rem;
-  font-family: ${(props) => props.fontFamily || "Impact"};
-  color: #fff;
-  ${({ bold }) =>
-    bold &&
-    css`
-      font-weight: bold;
-    `}
-  ${({ shadow }) =>
-    shadow
-      ? css`
-          text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000,
-            2px 2px 0 #000, 0 0 8px rgba(0, 0, 0, 0.7);
-        `
-      : css`
-          text-shadow: none;
-        `}  
-  text-transform: uppercase;
-  white-space: nowrap; /* Keep text on a single line */
-  overflow: visible; /* Allow text to be fully visible */
-  min-width: 120px; /* Smaller minimum width */
-  line-height: 1.2;
-  margin: 0;
-  padding: 0 2px; /* Reduced padding */
 `;
 
 const DrawingCanvas = styled.canvas<{

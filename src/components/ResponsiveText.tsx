@@ -91,12 +91,14 @@ const StyledText = styled.div<{
   font-weight: ${props => props.$bold ? 'bold' : 'normal'};
   text-align: ${props => props.$textAlign || 'center'};
   text-transform: uppercase;
-  white-space: nowrap; /* Force text to stay on a single line */
-  overflow: visible; /* Allow text to be fully visible */
+  white-space: normal; /* Allow wrapping to multiple lines */
+  word-break: break-word; /* Break long words if needed */
+  overflow: hidden;
   line-height: 1.2;
-  padding: 0; /* Remove any padding */
-  margin: 0; /* Remove any margin */
-  
+  padding: 0;
+  margin: 0;
+  font-size: ${props => props.$fontSize / 16}rem !important;
+  max-width: 100%; /* Prevent text from exceeding container width */
   ${props => props.$shadow && `
     text-shadow: 
       -2px -2px 0 #000,

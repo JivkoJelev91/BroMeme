@@ -58,18 +58,18 @@ const TextPanel: React.FC<TextPanelProps> = ({ handleImageUpload }) => {
         if (memeContainer) {
         const rect = memeContainer.getBoundingClientRect();
         
-        // Set top text to top of image - centered horizontally
+        // Set top text very close to top edge
         dispatch(updateTextPosition({
           position: "top",
           x: rect.width / 2, // Center horizontally (works with transform: translateX(-50%))
-          y: 5 // Only 5px from top for more space
+          y: 2 // 2px from top edge
         }));
         
-        // Set bottom text to bottom of image - centered horizontally
+        // Set bottom text very close to bottom edge
         dispatch(updateTextPosition({
           position: "bottom",
           x: rect.width / 2, // Center horizontally (works with transform: translateX(-50%))
-          y: rect.height - 60 // Increase to 60px from bottom for more space
+          y: rect.height - 2 // 2px from bottom edge, do NOT subtract text height
         }));
       }
     }, 10);
