@@ -15,7 +15,7 @@
 - 💻 **Code**:
   - 🤖 **Claude 3.7 Sonnet**
   - 👨‍💻 **GitHub Copilot**
-  - 🧠 **OpenAI GPT-4.1**
+  - 🌀 **OpenAI GPT-4.1**
 
 ---
 
