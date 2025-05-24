@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useAppDispatch } from '../redux/store';
 import { setActiveTab, setMemeImageName, setMemeImage } from '../redux/slices/memeSlice';
-import { MemeTemplate } from '../utils/memeTemplates';
+import { MemeTemplate } from '../utils/uploadService';
 import { supabase } from '../supabase/supabaseConfig';
 
 const RecentMemes: React.FC = () => {
@@ -76,7 +76,8 @@ const RecentMemes: React.FC = () => {
       }
     };
     
-    img.src = String(typeof meme.url === 'function' ? meme.url('') : meme.url);
+    // Fix: meme.url is always a string, remove typeof check
+    img.src = meme.url;
   };
   
   return (
@@ -112,7 +113,7 @@ const RecentMemes: React.FC = () => {
               onClick={() => handleSelectMeme(meme)}
             >
               <MemeImageContainer>
-                <MemeImage src={String(typeof meme.url === 'function' ? meme.url('') : meme.url)} alt={meme.name} />
+                <MemeImage src={meme.url} alt={meme.name} />
               </MemeImageContainer>
               <MemeName>{meme.name}</MemeName>
             </MemeCard>

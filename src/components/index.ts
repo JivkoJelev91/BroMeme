@@ -10,5 +10,4 @@ export { default as MemeTemplatesPanel } from './MemeTemplatesPanel';
 // Panel components
 export { default as TextPanel } from './panels/TextPanel';
 export { default as EffectsPanel } from './panels/EffectsPanel';
-export { default as TemplatesPanel } from './panels/TemplatesPanel';
 export { default as DrawPanel } from './panels/DrawPanel';

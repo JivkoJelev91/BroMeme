@@ -8,14 +8,7 @@ import { supabase } from '../supabase/supabaseConfig';
 import { FiHeart, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { FaHeart } from 'react-icons/fa';
 import AuthModal from './AuthModal';
-
-interface MemeTemplate {
-  id: string;
-  name: string;
-  url: string;
-  categories: string[];
-  created_at: string;
-}
+import { MemeTemplate } from '../utils/uploadService';
 
 interface MemeTemplatesPanelProps {
   category: string;
@@ -320,10 +313,10 @@ const MemeTemplatesPanel: React.FC<MemeTemplatesPanelProps> = ({
                   <TemplateImage src={template.url} alt={template.name} />
                   {user && (
                     <FavoriteButton 
-                      onClick={(event) => toggleFavorite(template.id, event)}
-                      $isFavorite={favoriteIds.includes(template.id)}
+                      onClick={(event) => toggleFavorite(template.id ?? '', event)}
+                      $isFavorite={favoriteIds.includes(template.id ?? '')}
                     >
-                      {favoriteIds.includes(template.id) ? <FaHeart /> : <FiHeart />}
+                      {favoriteIds.includes(template.id ?? '') ? <FaHeart /> : <FiHeart />}
                     </FavoriteButton>
                   )}
                   <TemplateName>{template.name}</TemplateName>

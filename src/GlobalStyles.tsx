@@ -23,4 +23,29 @@ export const GlobalStyles = createGlobalStyle<{ theme: ThemeType }>`
   button, input, select, textarea {
     font-family: inherit;
   }
+
+  /* Custom Scrollbar for all scrollable areas */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: ${({ theme }) => theme.colors.border.medium} ${({ theme }) => theme.colors.divider};
+  }
+  
+  *::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+    background: ${({ theme }) => theme.colors.divider};
+    border-radius: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.border.medium};
+    border-radius: 8px;
+    min-height: 24px;
+    transition: background 0.2s;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: ${({ theme }) => theme.colors.primary};
+  }
+  *::-webkit-scrollbar-corner {
+    background: ${({ theme }) => theme.colors.divider};
+  }
 `;
