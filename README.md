@@ -1,4 +1,4 @@
-# 🧠 BroMeme - Meme Generator
+# 😎 BroMeme – Meme Generator
 
 ![BroMeme Preview](./src/assets/cover.png)
 
@@ -23,7 +23,7 @@
 
 This project was built in a flow state with the help of multiple AI tools — what we like to call **Vibe Coding**. No overthinking, no endless docs — just creative momentum assisted by intelligent code and design agents.
 
-- 🧠 **Design** made with natural language → UI mockups and component ideas by ChatGPT  
+- 🪄 **Design** made with natural language → UI mockups and component ideas by ChatGPT  
 - 🤖 **Code** co-written with Claude 3.7 and GitHub Copilot in real time  
 - ⚡️ **AI agents** decided the file structure, naming, and even animations  
 - 🎯 Focused purely on **user experience**, speed, and joy of creation  
