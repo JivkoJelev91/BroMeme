@@ -421,9 +421,11 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
       const bottomTextHeight = bottomTextRef.current.offsetHeight;
       const initialBottomX = memeCardRect.width / 2;
       const initialBottomY = memeCardRect.height - bottomTextHeight - 2;
-      // Always set the position if the text height or text changes
+      // Set the position if it is uninitialized or out of bounds
       if (
-        Math.abs((bottomTextPosition.y + bottomTextHeight + 2) - memeCardRect.height) > 2
+        bottomTextPosition.y === 0 ||
+        bottomTextPosition.y < 0 ||
+        bottomTextPosition.y > memeCardRect.height - bottomTextHeight - 2
       ) {
         dispatch(
           updateTextPosition({
