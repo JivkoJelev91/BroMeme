@@ -109,7 +109,7 @@ export const SettingsMenu: React.FC<{
         <SettingsInput 
           type="number" 
           min={10} 
-          max={80} 
+          max={50} 
           value={fontSize} 
           onChange={e => setFontSize(Number(e.target.value))} 
         />

@@ -34,13 +34,12 @@ const ResponsiveText: React.FC<ResponsiveTextProps> = ({
       const availableWidth = containerWidth * 0.98;
         // First check if we can actually increase the font size
       // This allows text to be larger when there's enough space
-      if (textRef.current!.scrollWidth < availableWidth * 0.85 && currentSize < 48) {
+      if (textRef.current!.scrollWidth < availableWidth * 0.85 && currentSize < 50) {
         // There's room to grow - try increasing font size
-        while (currentSize < 48 && textRef.current!.scrollWidth < availableWidth * 0.95) {
+        while (currentSize < 50 && textRef.current!.scrollWidth < availableWidth * 0.95) {
           currentSize = currentSize + 1;
           textRef.current!.style.fontSize = `${currentSize / 16}rem`;
         }
-        
         // If we went too far, step back one
         if (textRef.current!.scrollWidth > availableWidth) {
           currentSize = currentSize - 1;

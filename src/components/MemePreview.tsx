@@ -1,4 +1,4 @@
-import React, { RefObject, useRef, useState, useEffect, useCallback } from "react";
+import React, { RefObject, useRef, useState, useEffect, useCallback, useLayoutEffect } from "react";
 import styled, { css } from "styled-components";
 import { addStroke, updateTextPosition } from "../redux";
 import { RootState, useAppSelector, useAppDispatch } from "../redux/store";
@@ -140,20 +140,14 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!draggingText || !memeRef.current) return;
-
       const memeRect = memeRef.current.getBoundingClientRect();
       const textRef = draggingText === "top" ? topTextRef : bottomTextRef;
-      
       if (!textRef.current) return;
-      
-      // Get mouse position relative to the meme container
       const mouseX = e.clientX - memeRect.left;
       const mouseY = e.clientY - memeRect.top;
-      
-      // Since our text container has transform: translateX(-50%),
-      // we want the X position to be the center point of the text
-      const newX = mouseX;  // The actual center point
-      const newY = mouseY - dragOffset.y; // Y position calculation remains the same
+      // Center X: add half text width to keep center under cursor
+      const newX = mouseX - dragOffset.x + textRef.current.offsetWidth / 2;
+      const newY = mouseY - dragOffset.y;
       
       // Calculate boundaries with less restrictive constraints
       const padding = 2; // Further reduced padding to allow text closer to edges
@@ -167,8 +161,8 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
       const minY = padding;
       // Maximum positions - keep text top position within the viable area
       const maxX = memeRect.width - textWidth / 2; // Don't let text go off right edge
-      const maxY = memeRect.height - textHeight - padding - 20; // Add extra bottom margin to keep text from being too close to edge
-      
+      // Remove '- 20' so text can go all the way to the bottom
+      const maxY = memeRect.height - textHeight - padding;
       // For X, constrain text center position within the viable area
       const constrainedX = Math.max(minX, Math.min(maxX, newX));
       // For Y, constrain text top position within the viable area
@@ -217,23 +211,28 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
       document.removeEventListener("mouseup", handleMouseUp);
       debouncedUpdatePosition.cancel();
     };
-  }, [draggingText, handleMouseMove, handleMouseUp, debouncedUpdatePosition]);  // We'll use handleImageLoad for setting positions consistently,
-  // but keep this as a fallback for when positions need reset
-  useEffect(() => {
-    if (memeRef.current && memeImage && 
-        (topTextPosition.x === 0 && topTextPosition.y === 0) || 
-        (bottomTextPosition.x === 0 && bottomTextPosition.y === 0)) {
-      // This is a fallback initialization for text positions
+  }, [draggingText, handleMouseMove, handleMouseUp, debouncedUpdatePosition]);
+
+  // Replace the useEffect that sets initial positions with useLayoutEffect for correct timing
+  useLayoutEffect(() => {
+    if (
+      memeRef.current &&
+      memeImage &&
+      ((topTextPosition.x === 0 && topTextPosition.y === 0) ||
+        (bottomTextPosition.x === 0 && bottomTextPosition.y === 0))
+    ) {
       const memeCardRect = memeRef.current.getBoundingClientRect();
       setMemeContainerWidth(memeCardRect.width);
       if (topTextPosition.x === 0 && topTextPosition.y === 0) {
         const initialTopX = memeCardRect.width / 2;
         const initialTopY = 2;
-        dispatch(updateTextPosition({
-          position: "top",
-          x: initialTopX,
-          y: initialTopY
-        }));
+        dispatch(
+          updateTextPosition({
+            position: "top",
+            x: initialTopX,
+            y: initialTopY,
+          })
+        );
         setLocalTopPosition({ x: initialTopX, y: initialTopY });
       }
       if (bottomTextPosition.x === 0 && bottomTextPosition.y === 0) {
@@ -243,11 +242,13 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
           bottomTextHeight = bottomTextRef.current.offsetHeight;
         }
         const initialBottomY = memeCardRect.height - bottomTextHeight - 2;
-        dispatch(updateTextPosition({
-          position: "bottom",
-          x: initialBottomX,
-          y: initialBottomY
-        }));
+        dispatch(
+          updateTextPosition({
+            position: "bottom",
+            x: initialBottomX,
+            y: initialBottomY,
+          })
+        );
         setLocalBottomPosition({ x: initialBottomX, y: initialBottomY });
       }
     }
@@ -266,6 +267,7 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
         if (bottomTextRef.current) {
           bottomTextHeight = bottomTextRef.current.offsetHeight;
         }
+        // Set initial Y for bottom text near the bottom using 'top' coordinate
         const initialBottomY = memeCardRect.height - bottomTextHeight - 2;
         dispatch(updateTextPosition({
           position: "top",
@@ -365,19 +367,75 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
     // Set which text is being dragged
     setDraggingText(position);
     
-    // For the Y offset only - we don't use X offset with transform: translateX(-50%)
     const textElement = position === "top" ? topTextRef.current : bottomTextRef.current;
-    
     if (textElement && memeRef.current) {
       const textRect = textElement.getBoundingClientRect();
-      
-      // We only need the Y offset since X is centered
-      const offsetY = e.clientY - textRect.top;
-      
-      // Set x offset to 0 since we're centering using transform: translateX(-50%)
-      setDragOffset({ x: 0, y: offsetY });
+      const offsetX = e.clientX - textRect.left;
+      let offsetY = e.clientY - textRect.top;
+      // Clamp offsetY for bottom text if it's at the bottom boundary
+      if (position === "bottom" && memeRef.current) {
+        const memeRect = memeRef.current.getBoundingClientRect();
+        const maxY = memeRect.height - textElement.offsetHeight - 2;
+        // If the text is at the bottom, force offsetY to 0 (so it doesn't jump)
+        if (Math.abs(textRect.top - (memeRect.top + maxY)) < 2) {
+          offsetY = 0;
+        }
+      }
+      setDragOffset({ x: offsetX, y: offsetY });
     }
   };
+
+  // Place this after all hooks, before return (
+  useEffect(() => {
+    if (
+      bottomText &&
+      memeRef.current &&
+      bottomTextRef.current &&
+      (bottomTextPosition.y === 0 || bottomTextPosition.y < 20)
+    ) {
+      const memeCardRect = memeRef.current.getBoundingClientRect();
+      const bottomTextHeight = bottomTextRef.current.offsetHeight;
+      const initialBottomX = memeCardRect.width / 2;
+      const initialBottomY = memeCardRect.height - bottomTextHeight - 2;
+      dispatch(
+        updateTextPosition({
+          position: "bottom",
+          x: initialBottomX,
+          y: initialBottomY,
+        })
+      );
+      setLocalBottomPosition({ x: initialBottomX, y: initialBottomY });
+    }
+  }, [bottomText, memeRef, bottomTextRef, bottomTextPosition.y, dispatch]);
+
+  // Robustly set bottom text position after image/text render or text height change
+  useLayoutEffect(() => {
+    if (
+      bottomText &&
+      memeRef.current &&
+      bottomTextRef.current &&
+      bottomTextRef.current.offsetHeight > 0 &&
+      memeImage
+    ) {
+      const memeCardRect = memeRef.current.getBoundingClientRect();
+      const bottomTextHeight = bottomTextRef.current.offsetHeight;
+      const initialBottomX = memeCardRect.width / 2;
+      const initialBottomY = memeCardRect.height - bottomTextHeight - 2;
+      // Always set the position if the text height or text changes
+      if (
+        Math.abs((bottomTextPosition.y + bottomTextHeight + 2) - memeCardRect.height) > 2
+      ) {
+        dispatch(
+          updateTextPosition({
+            position: "bottom",
+            x: initialBottomX,
+            y: initialBottomY,
+          })
+        );
+        setLocalBottomPosition({ x: initialBottomX, y: initialBottomY });
+      }
+    }
+  }, [bottomText, memeImage, memeRef, bottomTextRef, bottomTextPosition.y, bottomTextPosition.x, dispatch]);
 
   return (
     <PreviewContainer>
@@ -408,7 +466,7 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                   ref={topTextRef}
                   style={{
                     top: `${draggingText === "top" ? localTopPosition.y : topTextPosition.y}px`,
-                    left: `${draggingText === "top" ? localTopPosition.x : topTextPosition.x}px`,
+                    left: `${(draggingText === "top" ? localTopPosition.x : topTextPosition.x) - (topTextRef.current?.offsetWidth || 0) / 2}px`,
                     cursor: isTextDraggable ? "move" : "default"
                   }}
                   onMouseDown={(e) => handleTextMouseDown(e, "top")}
@@ -430,9 +488,8 @@ const MemePreview: React.FC<MemePreviewProps> = ({ memeRef }) => {
                 <MemeTextContainer
                   ref={bottomTextRef}
                   style={{
-                    // Use 'bottom' instead of 'top' for bottom text
-                    bottom: 2,
-                    left: `${draggingText === "bottom" ? localBottomPosition.x : bottomTextPosition.x}px`,
+                    top: `${draggingText === "bottom" ? localBottomPosition.y : bottomTextPosition.y}px`,
+                    left: `${(draggingText === "bottom" ? localBottomPosition.x : bottomTextPosition.x) - (bottomTextRef.current?.offsetWidth || 0) / 2}px`,
                     cursor: isTextDraggable ? "move" : "default"
                   }}
                   onMouseDown={(e) => handleTextMouseDown(e, "bottom")}
@@ -556,14 +613,12 @@ const MemeTextContainer = styled.div<{
 }>`
   position: absolute;
   z-index: 20;
-  padding: 0; /* Remove all padding for true edge-to-edge */
+  padding: 0;
   border-radius: 0;
   user-select: none;
   display: block;
-  transform: translateX(-50%); /* Center horizontally */
-  width: 100%; /* Match the image/container width exactly */
+  /* width: 100%; removed for correct positioning */
   box-sizing: border-box;
-  left: 50%;
   min-width: 0;
   max-width: 100%;
 
