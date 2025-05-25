@@ -1,4 +1,5 @@
 import { supabase } from '../supabase/supabaseConfig';
+import imageCompression from 'browser-image-compression';
 
 export type MemeTemplate = {
   id?: string;
@@ -18,25 +19,32 @@ export const uploadMemeTemplate = async (
   userId: string | undefined
 ): Promise<MemeTemplate | null> => {
   try {
+    // Compress the image
+    const compressedFile = await imageCompression(file, {
+      maxSizeMB: 0.5, // Target max size in MB
+      maxWidthOrHeight: 1024, // Resize if needed
+      useWebWorker: true,
+    });
+
     // Validate file size
-    if (file.size > 4 * 1024 * 1024) { // 4MB limit
+    if (compressedFile.size > 4 * 1024 * 1024) { // 4MB limit
       throw new Error('File size exceeds 5MB limit');
     }
     
     // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
+    if (!validTypes.includes(compressedFile.type)) {
       throw new Error('Unsupported file type. Please upload JPEG, PNG, GIF or WEBP');
     }
     
     // 1. Upload image to Supabase storage
-    const fileExt = file.name.split('.').pop();
+    const fileExt = compressedFile.name.split('.').pop();
     const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
     const filePath = `meme-templates/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('memes')
-      .upload(filePath, file);
+      .upload(filePath, compressedFile);
 
     if (uploadError) {
       throw new Error(uploadError.message);
