@@ -183,7 +183,6 @@ const Container = styled.div`
   padding: 1.25rem;
   box-shadow: 0 2px 6px ${({ theme }) => theme.colors.shadow};
   width: 100%;
-  margin-bottom: 1.5rem;
   overflow: visible;
   z-index: 1;
   
