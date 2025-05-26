@@ -24,7 +24,7 @@
 This project was built in a flow state with the help of multiple AI tools — what we like to call **Vibe Coding**. No overthinking, no endless docs — just creative momentum assisted by intelligent code and design agents.
 
 - 🪄 **Design** made with natural language → UI mockups and component ideas by ChatGPT  
-- 🤖 **Code** co-written with Claude 3.7 and GitHub Copilot in real time  
+- 🤖 **Code** co-written with Claude 3.7, GitHub Copilot, and GPT-4.1 in real time  
 - ⚡️ **AI agents** decided the file structure, naming, and even animations  
 - 🎯 Focused purely on **user experience**, speed, and joy of creation  
 
@@ -45,7 +45,6 @@ This project was built in a flow state with the help of multiple AI tools — wh
   - Apply effects  
 - 📤 Upload your image  
 - 📦 Download as PNG  
-- 🔥 Trending & categorized meme templates  
 - 🌐 Category Tabs for quick discovery  
 - 💖 **Favorite Functionality**: Users can favorite memes for quick access later  
 - 🌗 **Dark/Light Theme Toggle**  
@@ -58,7 +57,6 @@ This project was built in a flow state with the help of multiple AI tools — wh
 
 - 🤖 **AI Meme Decoder**: Instantly turn meme images into funny, caption-style text
 - 🔐 **User Authentication**  
-- 👍 **Like System**: Let users like memes (separate from favorites) to help surface popular content  
 - 🌍 **Login with Other Social Media Platforms** (Facebook, Twitter, GitHub, etc.)
 
 ---
